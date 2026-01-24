@@ -14,15 +14,12 @@
 </head>
 <body>
 
-    <div class="template-nav">
-        <div class="template-tabs-scroll" id="template-tabs">
-            </div>
-    </div>
+    <div class="template-nav" id="template-tabs">
+        </div>
 
     <div class="container workout-container">
         
-        <div class="day-selector" id="day-selector">
-            </div>
+        <div class="day-selector" id="day-selector"></div>
 
         <div class="day-header">
             <h2 id="current-day-name">Monday</h2>
@@ -30,45 +27,41 @@
                 <span>Rest Day</span>
                 <label class="switch">
                     <input type="checkbox" id="rest-toggle">
-                    <span class="slider round"></span>
+                    <span class="slider"></span>
                 </label>
             </div>
         </div>
 
-        <div id="exercise-list" class="exercise-list">
-            </div>
+        <div id="exercise-list"></div>
 
-        <div class="action-buttons">
-            <button class="btn-add" onclick="openExerciseLibrary()">+ Add Exercise</button>
-        </div>
+        <button class="btn-add" onclick="openLibrary()">+ Add Exercise</button>
 
     </div>
 
-    <div id="library-modal" class="modal hidden">
+    <div id="library-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Library</h3>
-                <span class="close-modal" onclick="closeLibrary()">×</span>
+                <span class="close-modal" onclick="closeLibrary()" style="font-size:24px; padding:10px;">×</span>
             </div>
             
-            <input type="text" id="search-bar" placeholder="Search exercises..." class="search-bar">
+            <input type="text" id="search-bar" placeholder="Search..." class="search-bar">
             
             <button class="btn-create-custom" onclick="createCustomExercise()">+ Create Custom Exercise</button>
 
-            <div class="filter-chips" id="body-part-filters">
-                <span class="chip active" onclick="filterBodyPart('all')">All</span>
+            <div class="filter-chips">
+                <span class="chip active" onclick="filterBodyPart('favorites')">Favorites</span>
+                <span class="chip" onclick="filterBodyPart('custom')">Custom</span>
                 <span class="chip" onclick="filterBodyPart('chest')">Chest</span>
                 <span class="chip" onclick="filterBodyPart('back')">Back</span>
-                <span class="chip" onclick="filterBodyPart('legs')">Legs</span>
                 <span class="chip" onclick="filterBodyPart('shoulders')">Shoulders</span>
                 <span class="chip" onclick="filterBodyPart('arms')">Arms</span>
+                <span class="chip" onclick="filterBodyPart('legs')">Legs</span>
                 <span class="chip" onclick="filterBodyPart('abs')">Abs</span>
                 <span class="chip" onclick="filterBodyPart('cardio')">Cardio</span>
-                <span class="chip" onclick="filterBodyPart('custom')">Custom</span>
             </div>
 
-            <div id="library-list" class="library-list">
-                </div>
+            <div id="library-list" class="library-list"></div>
         </div>
     </div>
 

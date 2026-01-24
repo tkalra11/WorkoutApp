@@ -1,101 +1,96 @@
-// workouts.js - Updated with Custom Exercises & Layout Fixes
+// workouts.js
 
-// ==========================================
-// 1. STATE & VARIABLES
-// ==========================================
-let exercisesDB = {}; 
-let customExercises = []; // New array for user-created exercises
-let templates = [];   
+// --- STATE ---
+let exercisesDB = {};
+let customExercises = [];
+let favorites = [];
+let templates = [];
 let currentTemplateIndex = 0;
 let currentDayIndex = new Date().getDay() - 1; 
 if (currentDayIndex < 0) currentDayIndex = 6; 
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-const defaultTemplates = [
-    { id: "plan_1", name: "Push Pull Legs", active: true, schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] })) },
-    { id: "plan_2", name: "Bro Split", active: false, schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] })) },
-    { id: "plan_3", name: "Full Body", active: false, schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] })) }
-];
-
-// ==========================================
-// 2. INITIALIZATION
-// ==========================================
+// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // A. Fix Layout Positioning dynamically
-    fixLayoutPositioning();
-
-    // B. Load Data
-    loadTemplates();
-    loadCustomExercises(); // Load user-created exercises
+    loadData();
     await loadExerciseDatabase();
-
-    // C. Render UI
-    renderTemplateTabs();
-    renderDaySelector();
-    renderDayPlan();
-
-    // D. Search Listener
-    const searchInput = document.getElementById('search-bar');
-    if (searchInput) searchInput.addEventListener('input', renderLibraryList);
+    initUI();
 });
 
-// Run this again on resize (e.g. rotating phone)
-window.addEventListener('resize', fixLayoutPositioning);
+// --- DATA MANAGEMENT ---
+function loadData() {
+    // Templates
+    const storedTemplates = localStorage.getItem('workout_templates');
+    if (storedTemplates) {
+        templates = JSON.parse(storedTemplates);
+    } else {
+        templates = [{
+            id: "plan_default",
+            name: "Default Workout Plan",
+            active: true,
+            schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] }))
+        }];
+        saveTemplates();
+    }
 
-function fixLayoutPositioning() {
-    // 1. Measure the fixed header (it changes height based on notch/safe-area)
-    const header = document.querySelector('.top-bar'); // From script.js/header.html
-    const headerHeight = header ? header.offsetHeight : 60; // Fallback to 60
+    // Custom Exercises
+    const storedCustom = localStorage.getItem('custom_exercises');
+    customExercises = storedCustom ? JSON.parse(storedCustom) : [];
 
-    // 2. Set a CSS variable that style.css uses
-    document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
-}
-
-// --- Data Loading ---
-function loadTemplates() {
-    const stored = localStorage.getItem('workout_templates');
-    templates = stored ? JSON.parse(stored) : defaultTemplates;
-    if (!stored) saveTemplates();
+    // Favorites
+    const storedFavs = localStorage.getItem('exercise_favorites');
+    favorites = storedFavs ? JSON.parse(storedFavs) : [];
 }
 
 function saveTemplates() {
     localStorage.setItem('workout_templates', JSON.stringify(templates));
 }
 
-function loadCustomExercises() {
-    const stored = localStorage.getItem('custom_exercises');
-    customExercises = stored ? JSON.parse(stored) : [];
+function saveCustom() {
+    localStorage.setItem('custom_exercises', JSON.stringify(customExercises));
 }
 
-function saveCustomExercises() {
-    localStorage.setItem('custom_exercises', JSON.stringify(customExercises));
+function saveFavorites() {
+    localStorage.setItem('exercise_favorites', JSON.stringify(favorites));
 }
 
 async function loadExerciseDatabase() {
     try {
         const response = await fetch('fitness_exercises_by_bodyPart.json');
-        if (!response.ok) throw new Error("File not found");
+        if (!response.ok) throw new Error("JSON not found");
         exercisesDB = await response.json();
     } catch (error) {
-        console.error("Error loading exercises:", error);
-        // We continue anyway, so Custom Exercises still work
+        console.error("DB Load Error:", error);
     }
 }
 
-// ==========================================
-// 3. UI RENDERING
-// ==========================================
+// --- UI RENDERING ---
+function initUI() {
+    renderTemplateTabs();
+    renderDaySelector();
+    renderDayPlan();
+    
+    // Search Listener
+    const searchInput = document.getElementById('search-bar');
+    if (searchInput) searchInput.addEventListener('input', renderLibraryList);
+}
 
 function renderTemplateTabs() {
     const container = document.getElementById('template-tabs');
     if (!container) return;
     container.innerHTML = '';
 
+    // Render existing plans
     templates.forEach((temp, index) => {
         const tab = document.createElement('div');
         tab.className = `template-tab ${index === currentTemplateIndex ? 'active' : ''}`;
-        tab.textContent = temp.name;
+        
+        // Editable Name span
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = temp.name;
+        tab.appendChild(nameSpan);
+
         tab.onclick = () => {
             currentTemplateIndex = index;
             renderTemplateTabs();
@@ -103,16 +98,39 @@ function renderTemplateTabs() {
         };
         container.appendChild(tab);
     });
+
+    // Add "+" Button
+    const addBtn = document.createElement('div');
+    addBtn.className = 'template-tab';
+    addBtn.innerHTML = '+';
+    addBtn.onclick = createNewPlan;
+    container.appendChild(addBtn);
+}
+
+function createNewPlan() {
+    const name = prompt("Name your new plan:");
+    if (!name) return;
+    
+    templates.push({
+        id: "plan_" + Date.now(),
+        name: name,
+        active: false,
+        schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] }))
+    });
+    
+    saveTemplates();
+    currentTemplateIndex = templates.length - 1; // Switch to new plan
+    renderTemplateTabs();
+    renderDayPlan();
 }
 
 function renderDaySelector() {
     const container = document.getElementById('day-selector');
     if (!container) return;
     container.innerHTML = '';
-
-    const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     
-    dayLabels.forEach((label, index) => {
+    labels.forEach((label, index) => {
         const bubble = document.createElement('div');
         bubble.className = `day-bubble ${index === currentDayIndex ? 'active' : ''}`;
         bubble.textContent = label;
@@ -133,9 +151,9 @@ function renderDayPlan() {
     const listContainer = document.getElementById('exercise-list');
     const restToggle = document.getElementById('rest-toggle');
 
-    // Rest Toggle Logic
+    // Rest Toggle
     if (restToggle) {
-        const newToggle = restToggle.cloneNode(true); // Clear old listeners
+        const newToggle = restToggle.cloneNode(true);
         restToggle.parentNode.replaceChild(newToggle, restToggle);
         newToggle.checked = currentPlan.isRest;
         newToggle.addEventListener('change', (e) => {
@@ -147,109 +165,91 @@ function renderDayPlan() {
 
     listContainer.innerHTML = '';
 
-    if (currentPlan.isRest) {
-        listContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><h3>Rest Day 😴</h3><p>Recover for tomorrow!</p></div>`;
-        return;
-    }
-
+    // Show exercises regardless of rest day status (as requested)
     if (currentPlan.exercises.length === 0) {
-        listContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>No exercises planned.</p><p>Tap "+ Add Exercise" to start building.</p></div>`;
-        return; 
+        listContainer.innerHTML = `
+            <div style="text-align:center; padding:40px; color:#666;">
+                ${currentPlan.isRest ? '<p>Rest Day Active</p>' : ''}
+                <p>No exercises planned.</p>
+            </div>`;
+    } else {
+        currentPlan.exercises.forEach((exercise, index) => {
+            const item = document.createElement('div');
+            item.className = 'exercise-card';
+            item.innerHTML = `
+                <div class="ex-header">
+                    <span class="ex-name">${exercise.name}</span>
+                    <span class="ex-remove" onclick="removeExercise(${index})">×</span>
+                </div>
+                <div class="ex-details">
+                    <div class="input-group">
+                        <label>Sets</label>
+                        <input type="number" value="${exercise.sets}" onchange="updateEx(${index}, 'sets', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label>Reps</label>
+                        <input type="text" value="${exercise.targetReps}" onchange="updateEx(${index}, 'targetReps', this.value)">
+                    </div>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
     }
-
-    currentPlan.exercises.forEach((exercise, index) => {
-        const item = document.createElement('div');
-        item.className = 'exercise-card';
-        item.innerHTML = `
-            <div class="ex-header">
-                <span class="ex-name">${exercise.name}</span>
-                <span class="ex-remove" onclick="removeExercise(${index})">×</span>
-            </div>
-            <div class="ex-details">
-                <div class="input-group">
-                    <label>Sets</label>
-                    <input type="number" value="${exercise.sets}" onchange="updateExercise(${index}, 'sets', this.value)">
-                </div>
-                <div class="input-group">
-                    <label>Reps</label>
-                    <input type="text" value="${exercise.targetReps}" onchange="updateExercise(${index}, 'targetReps', this.value)">
-                </div>
-            </div>
-        `;
-        listContainer.appendChild(item);
-    });
 }
 
-// ==========================================
-// 4. ACTIONS (Add/Remove/Custom)
-// ==========================================
-
-function updateExercise(exIndex, field, value) {
-    templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exIndex][field] = value;
+// --- ACTIONS ---
+function updateEx(index, field, value) {
+    templates[currentTemplateIndex].schedule[currentDayIndex].exercises[index][field] = value;
     saveTemplates();
 }
 
 function removeExercise(index) {
-    if (confirm("Remove this exercise?")) {
+    if (confirm("Remove exercise?")) {
         templates[currentTemplateIndex].schedule[currentDayIndex].exercises.splice(index, 1);
         saveTemplates();
         renderDayPlan();
     }
 }
 
-// --- Custom Exercise Logic ---
 function createCustomExercise() {
-    const name = prompt("Enter Exercise Name:");
+    const name = prompt("Exercise Name:");
     if (!name) return;
-
-    const target = prompt("Target Body Part (e.g., Chest, Back, Legs):") || "Other";
-
-    const newCustomEx = {
-        id: "custom_" + Date.now(),
+    const target = prompt("Body Part (chest, back, legs, arms, abs, shoulders, cardio):");
+    
+    const newEx = {
+        id: "cust_" + Date.now(),
         name: name,
-        target: target.toLowerCase(),
-        bodyPart: "custom", // Internal tag for filtering
+        target: "custom",
+        bodyPart: target ? target.toLowerCase() : "custom", 
         isCustom: true
     };
-
-    // Save to user storage
-    customExercises.push(newCustomEx);
-    saveCustomExercises();
-
-    // Select it immediately
-    selectExercise(newCustomEx.id, newCustomEx.name);
     
-    // Refresh modal to show it in future searches
-    // (Optional: switch filter to 'Custom' automatically)
+    customExercises.push(newEx);
+    saveCustom();
+    addExerciseToPlan(newEx.id, newEx.name);
 }
 
-// ==========================================
-// 5. LIBRARY MODAL
-// ==========================================
+// --- LIBRARY MODAL ---
+let currentFilter = 'favorites'; // Default filter
 
-let currentFilter = 'all';
-
-function openExerciseLibrary() {
-    document.getElementById('library-modal').classList.remove('hidden');
-    // Ensure we have layout calculated before rendering list (sometimes needed for scrolling)
-    renderLibraryList();
+function openLibrary() {
+    document.getElementById('library-modal').classList.add('active');
+    filterBodyPart('favorites'); // Reset to favorites on open
 }
 
 function closeLibrary() {
-    document.getElementById('library-modal').classList.add('hidden');
+    document.getElementById('library-modal').classList.remove('active');
 }
 
-function filterBodyPart(part) {
-    currentFilter = part.toLowerCase();
+function filterBodyPart(category) {
+    currentFilter = category;
     
-    // Visual update
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    // Find the chip that was clicked (approximate match logic)
-    const chips = document.querySelectorAll('.chip');
-    chips.forEach(chip => {
-        if(chip.innerText.toLowerCase() === part) chip.classList.add('active');
+    // Update Chips UI
+    document.querySelectorAll('.chip').forEach(c => {
+        c.classList.remove('active');
+        if (c.innerText.toLowerCase() === category) c.classList.add('active');
     });
-
+    
     renderLibraryList();
 }
 
@@ -258,57 +258,102 @@ function renderLibraryList() {
     const container = document.getElementById('library-list');
     container.innerHTML = '';
 
-    // 1. COMBINE DATA: JSON Data + Custom User Data
-    let allExercises = [...customExercises]; // Start with custom ones
+    let list = [];
 
-    if (currentFilter === 'all') {
-        Object.keys(exercisesDB).forEach(key => {
-            allExercises = allExercises.concat(exercisesDB[key]);
+    // 1. DATA GATHERING & MAPPING
+    // Map UI categories to JSON keys
+    const map = {
+        'chest': ['chest'],
+        'back': ['back'],
+        'shoulders': ['shoulders', 'neck'],
+        'arms': ['lower arms', 'upper arms'],
+        'legs': ['lower legs', 'upper legs'],
+        'abs': ['waist'],
+        'cardio': ['cardio']
+    };
+
+    if (currentFilter === 'favorites') {
+        // Collect all favorite IDs
+        const favIds = new Set(favorites);
+        
+        // Search in JSON
+        Object.values(exercisesDB).flat().forEach(ex => {
+            if (favIds.has(ex.id)) list.push(ex);
         });
+        // Search in Custom
+        customExercises.forEach(ex => {
+            if (favIds.has(ex.id)) list.push(ex);
+        });
+
     } else if (currentFilter === 'custom') {
-        // Just keep the initial customExercises array
+        list = customExercises;
+
     } else {
-        // JSON categories
-        if (exercisesDB[currentFilter]) {
-            allExercises = allExercises.concat(exercisesDB[currentFilter]);
-        }
+        // Normal Category
+        const jsonKeys = map[currentFilter] || [];
+        
+        // Add JSON exercises
+        jsonKeys.forEach(key => {
+            if (exercisesDB[key]) list = list.concat(exercisesDB[key]);
+        });
+
+        // Add Custom exercises that match this body part
+        const matchingCustom = customExercises.filter(ex => ex.bodyPart === currentFilter);
+        list = list.concat(matchingCustom);
     }
 
-    // 2. Filter by Search Query
-    const filtered = allExercises.filter(ex => ex.name.toLowerCase().includes(query));
+    // 2. SEARCH FILTER
+    if (query) {
+        list = list.filter(ex => ex.name.toLowerCase().includes(query));
+    }
 
-    // 3. Render (Lazy limit to 50 for performance)
-    if (filtered.length === 0) {
-        container.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No exercises found.<br>Tap "Create Custom Exercise" to add one.</div>`;
+    // 3. RENDER (Lazy limit 50)
+    if (list.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No exercises found.</div>`;
         return;
     }
 
-    filtered.slice(0, 50).forEach(ex => {
+    list.slice(0, 50).forEach(ex => {
+        const isFav = favorites.includes(ex.id);
         const item = document.createElement('div');
         item.className = 'lib-item';
-        // Add a star or badge if it's custom
-        const customBadge = ex.isCustom ? '<span style="color:#4A90E2; font-size:10px; margin-left:5px;">(Custom)</span>' : '';
-        
         item.innerHTML = `
             <div class="lib-info">
-                <div class="lib-name">${ex.name} ${customBadge}</div>
-                <div class="lib-target">${ex.target}</div>
+                <div class="lib-name-row">
+                    <span class="lib-star ${isFav ? 'starred' : ''}" onclick="toggleFav('${ex.id}', this)">★</span>
+                    <span class="lib-name">${ex.name}</span>
+                </div>
+                <div class="lib-meta">${ex.target}</div>
             </div>
-            <button class="btn-add-small" onclick="selectExercise('${ex.id}', '${ex.name.replace(/'/g, "\\'")}')">+</button>
+            <button class="btn-add-small" onclick="addExerciseToPlan('${ex.id}', '${ex.name.replace(/'/g, "\\'")}')">+</button>
         `;
         container.appendChild(item);
     });
 }
 
-function selectExercise(id, name) {
-    const newExercise = {
+function toggleFav(id, starElement) {
+    const idx = favorites.indexOf(id);
+    if (idx === -1) {
+        favorites.push(id);
+        starElement.classList.add('starred');
+    } else {
+        favorites.splice(idx, 1);
+        starElement.classList.remove('starred');
+    }
+    saveFavorites();
+    // If currently viewing favorites tab, refresh list to remove un-starred
+    if (currentFilter === 'favorites') renderLibraryList();
+}
+
+function addExerciseToPlan(id, name) {
+    const newEx = {
         id: id,
         name: name,
         sets: 3,
         targetReps: "10"
     };
-
-    templates[currentTemplateIndex].schedule[currentDayIndex].exercises.push(newExercise);
+    
+    templates[currentTemplateIndex].schedule[currentDayIndex].exercises.push(newEx);
     saveTemplates();
     closeLibrary();
     renderDayPlan();

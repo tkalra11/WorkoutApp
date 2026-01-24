@@ -1,157 +1,87 @@
-/* --- GLOBAL FIXES --- */
-/* Prevent iPhone Zoom on inputs */
-input, select, textarea {
-    font-size: 16px !important; 
+/* style.css */
+
+:root {
+    --header-height: 60px;
+    --tab-height: 50px;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
 }
 
-/* RESET & BASE STYLES */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     background-color: #121212;
     color: white;
     min-height: 100vh;
-    /* Add padding to bottom so content doesn't get hidden behind navbar */
-    padding-bottom: 100px; 
+    padding-bottom: calc(60px + var(--safe-bottom));
 }
 
-h1 { font-size: 24px; margin-bottom: 10px; }
-p { color: #aaa; line-height: 1.5; }
-
-/* Update this section in your style.css */
-
-.container {
-    padding: 20px;
-    /* This ensures content starts BELOW the top notch/status bar */
-    padding-top: max(60px, env(safe-area-inset-top) + 20px); 
-    text-align: center;
+input, select, textarea {
+    font-size: 16px !important; 
 }
 
-
-/* BOTTOM NAVIGATION BAR */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #1E1E24;
-    border-top: 1px solid #333;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 1000;
-
-    /* SAFE AREA LOGIC */
-    padding-top: 12px;
-    /* This ensures it clears the iPhone home bar */
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)); 
-}
-
-/* NAV ITEMS */
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: #888;
-    font-size: 11px;
-    width: 100%;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-/* ACTIVE STATE */
-.nav-item.active {
-    color: #4A90E2;
-}
-
-.nav-item.active svg {
-    fill: #4A90E2; /* For filled icons */
-    stroke: #4A90E2; /* For stroked icons */
-}
-
-/* ICONS */
-.nav-icon {
-    width: 24px;
-    height: 24px;
-    margin-bottom: 4px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-/* FIXED TOP HEADER */
+/* --- TOP HEADER --- */
 .top-bar {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    /* Use transparent black or solid color */
-    background-color: rgba(30, 30, 36, 0.95); 
-    backdrop-filter: blur(10px); /* Cool glass effect */
+    height: calc(var(--header-height) + var(--safe-top));
+    background-color: rgba(30, 30, 36, 0.95);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid #333;
     z-index: 1000;
-    
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-
-    /* CRITICAL: Handle the iPhone Notch area */
-    padding-top: max(15px, env(safe-area-inset-top) + 10px);
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 15px;
 }
 
 .top-bar h1 {
-    font-size: 20px;
-    margin: 0;
+    font-size: 18px;
     font-weight: 600;
+    margin: 0;
 }
 
-.header-icon {
-    color: #4A90E2;
-    cursor: pointer;
-}
-
-/* WORKOUTS SPECIFIC STYLES */
-
-/* --- TEMPLATE TABS (UPDATED) --- */
+/* --- TEMPLATE TABS --- */
 .template-nav {
     position: fixed;
+    top: calc(var(--header-height) + var(--safe-top));
     left: 0;
     width: 100%;
+    height: var(--tab-height);
     background: #1E1E24;
-    padding: 10px 0;
-    z-index: 950; /* Between Header (1000) and Content */
+    z-index: 950;
     border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
     overflow-x: auto;
     white-space: nowrap;
-    
-    /* DYNAMIC POSITIONING */
-    /* This variable will be set by JS. Default to 60px if JS fails */
-    top: var(--header-height, 60px); 
+    -webkit-overflow-scrolling: touch;
+    padding: 0 10px;
 }
 
-.template-tabs-scroll {
-    padding: 0 15px;
-}
+.template-nav::-webkit-scrollbar { display: none; }
 
 .template-tab {
-    display: inline-block;
-    padding: 6px 16px;
-    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    margin-right: 8px;
     background: #333;
-    border-radius: 20px;
+    border-radius: 16px;
     color: #888;
     font-size: 13px;
     cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
 }
 
 .template-tab.active {
@@ -159,19 +89,31 @@ p { color: #aaa; line-height: 1.5; }
     color: white;
 }
 
-/* 2. Day Selector */
+/* --- MAIN CONTAINER --- */
+.container {
+    padding: 20px;
+    padding-top: calc(var(--header-height) + var(--safe-top) + 20px);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.workout-container {
+    padding-top: calc(var(--header-height) + var(--safe-top) + var(--tab-height) + 20px) !important;
+}
+
+/* --- DAY SELECTOR --- */
 .day-selector {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
     background: #222;
-    padding: 5px;
-    border-radius: 12px;
+    padding: 6px;
+    border-radius: 14px;
+    margin-bottom: 20px;
 }
 
 .day-bubble {
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -179,15 +121,16 @@ p { color: #aaa; line-height: 1.5; }
     font-size: 12px;
     color: #888;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .day-bubble.active {
     background: #4A90E2;
     color: white;
-    font-weight: bold;
+    font-weight: 700;
 }
 
-/* 3. Rest Toggle */
+/* --- DAY HEADER & TOGGLE --- */
 .day-header {
     display: flex;
     justify-content: space-between;
@@ -195,11 +138,20 @@ p { color: #aaa; line-height: 1.5; }
     margin-bottom: 15px;
 }
 
+.day-header h2 { font-size: 20px; margin: 0; }
+
+.rest-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #aaa;
+}
+
 .switch {
     position: relative;
     display: inline-block;
     width: 40px;
-    height: 24px;
+    height: 22px;
     margin-left: 10px;
 }
 
@@ -211,67 +163,134 @@ p { color: #aaa; line-height: 1.5; }
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: #333;
     transition: .4s;
+    border-radius: 34px;
 }
 
 .slider:before {
     position: absolute;
     content: "";
     height: 16px; width: 16px;
-    left: 4px; bottom: 4px;
+    left: 3px; bottom: 3px;
     background-color: white;
     transition: .4s;
+    border-radius: 50%;
 }
 
 input:checked + .slider { background-color: #4A90E2; }
-input:checked + .slider:before { transform: translateX(16px); }
-.slider.round { border-radius: 34px; }
-.slider.round:before { border-radius: 50%; }
+input:checked + .slider:before { transform: translateX(18px); }
 
-/* 4. Action Buttons */
-.action-buttons {
-    margin-top: 30px;
+/* --- EXERCISE LIST --- */
+.exercise-card {
+    background: #2A2A30;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #333;
+}
+
+.ex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ex-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: white;
+}
+
+.ex-remove {
+    color: #666;
+    font-size: 20px;
+    padding: 5px;
+}
+
+.ex-details { display: flex; gap: 12px; }
+
+.input-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    flex: 1;
 }
 
-.btn-add {
-    background: #333;
-    color: #4A90E2;
-    border: 1px dashed #4A90E2;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    width: 100%;
-}
-
-.btn-empty {
-    background: transparent;
+.input-group label {
+    font-size: 10px;
     color: #888;
-    border: 1px solid #444;
-    padding: 12px;
-    border-radius: 8px;
-    width: 100%;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
 }
 
-/* 5. Library Modal */
+.input-group input {
+    background: #121212;
+    border: 1px solid #444;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* --- BUTTONS --- */
+.btn-add, .btn-create-custom {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    border: 1px dashed #4A90E2;
+    background: rgba(74, 144, 226, 0.1);
+    color: #4A90E2;
+}
+
+.btn-create-custom { margin-bottom: 15px; }
+
+/* --- BOTTOM NAV --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; width: 100%;
+    background-color: #1E1E24;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: space-around;
+    padding-top: 12px;
+    padding-bottom: calc(12px + var(--safe-bottom));
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #666;
+    font-size: 10px;
+    flex: 1;
+}
+
+.nav-item.active { color: #4A90E2; }
+.nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
+
+/* --- MODAL & LIBRARY --- */
 .modal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.8);
     z-index: 2000;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end; /* Sheet style */
+    display: none;
+    align-items: flex-end;
 }
 
-.modal.hidden { display: none; }
+.modal.active { display: flex; }
 
 .modal-content {
     background: #1E1E24;
     width: 100%;
-    height: 90%; /* Takes up 90% of screen */
-    border-radius: 20px 20px 0 0;
+    height: 92%;
+    border-radius: 24px 24px 0 0;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -284,44 +303,35 @@ input:checked + .slider:before { transform: translateX(16px); }
     margin-bottom: 15px;
 }
 
-.close-modal {
-    font-size: 28px;
-    cursor: pointer;
-}
-
 .search-bar {
     width: 100%;
-    padding: 12px;
+    padding: 12px 16px;
     background: #121212;
-    border: none;
-    border-radius: 8px;
+    border: 1px solid #333;
+    border-radius: 10px;
     color: white;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-/* --- FILTER BUBBLES FIX --- */
 .filter-chips {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding: 5px 2px 10px 2px; /* Extra bottom padding for scrollbar space */
+    padding-bottom: 8px;
     margin-bottom: 10px;
-    -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-    scrollbar-width: none; /* Hide scrollbar Firefox */
+    white-space: nowrap;
 }
 
-.filter-chips::-webkit-scrollbar {
-    display: none; /* Hide scrollbar Chrome/Safari */
-}
+.filter-chips::-webkit-scrollbar { display: none; }
 
 .chip {
-    flex: 0 0 auto; /* Prevent shrinking */
     padding: 8px 16px;
     background: #333;
     border-radius: 20px;
     font-size: 13px;
-    white-space: nowrap;
+    color: #ccc;
     cursor: pointer;
+    flex-shrink: 0;
     border: 1px solid transparent;
 }
 
@@ -331,116 +341,41 @@ input:checked + .slider:before { transform: translateX(16px); }
     border-color: #4A90E2;
 }
 
-/* --- NEW: CUSTOM EXERCISE BUTTON --- */
-.btn-create-custom {
-    width: 100%;
-    padding: 12px;
-    background: #2A2A30;
-    color: #4A90E2;
-    border: 1px dashed #4A90E2;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-weight: 600;
+.library-list { flex: 1; overflow-y: auto; }
+
+.lib-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.lib-info { display: flex; flex-direction: column; }
+
+.lib-name-row { display: flex; align-items: center; gap: 8px; }
+
+.lib-star {
+    font-size: 18px;
+    color: #444;
     cursor: pointer;
 }
 
-.library-list {
-    flex-grow: 1;
-    overflow-y: auto;
-}
+.lib-star.starred { color: #FFD700; }
 
-.lib-item {
-    padding: 15px;
-    border-bottom: 1px solid #333;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+.lib-name { font-weight: 500; font-size: 15px; }
 
-/* EXERCISE CARD (Inside the Daily Plan) */
-.exercise-card {
-    background: #2A2A30;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 10px;
-    border: 1px solid #333;
-}
-
-.ex-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.ex-name {
-    font-weight: 600;
-    font-size: 15px;
-    text-transform: capitalize;
-}
-
-.ex-remove {
-    color: #ff4444;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0 10px;
-}
-
-.ex-details {
-    display: flex;
-    gap: 15px;
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    width: 45%;
-}
-
-.input-group label {
-    font-size: 10px;
-    color: #888;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-}
-
-.input-group input {
-    background: #121212;
-    border: 1px solid #444;
-    color: white;
-    padding: 8px;
-    border-radius: 6px;
-    text-align: center;
-}
-
-/* LIBRARY LIST ITEMS */
-.lib-item {
-    padding: 12px 0;
-    border-bottom: 1px solid #333;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.lib-name {
-    font-weight: 600;
-    text-transform: capitalize;
-    font-size: 14px;
-}
-
-.lib-target {
-    font-size: 11px;
-    color: #888;
-    text-transform: capitalize;
-}
+.lib-meta { font-size: 12px; color: #666; margin-top: 4px; text-transform: capitalize; }
 
 .btn-add-small {
-    background: #4A90E2;
-    color: white;
-    border: none;
-    width: 30px;
-    height: 30px;
+    width: 32px; height: 32px;
+    background: #333;
+    color: #4A90E2;
     border-radius: 50%;
-    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
     cursor: pointer;
+    border: none;
 }
