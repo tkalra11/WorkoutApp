@@ -1,6 +1,5 @@
 // js/workouts.js
 
-// --- STATE ---
 let exercisesDB = {};
 let customExercises = [];
 let favorites = [];
@@ -8,47 +7,34 @@ let templates = [];
 let currentTemplateIndex = 0;
 let currentDayIndex = new Date().getDay() - 1; 
 if (currentDayIndex < 0) currentDayIndex = 6; 
-
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', async () => {
     loadData();
     await loadExerciseDatabase();
     initUI();
     
-    // Fix Header Height for CSS
+    // Fix Header Height for CSS (Calculates actual rendered height)
     setTimeout(() => {
         const header = document.querySelector('.top-bar');
         if (header) {
-            document.documentElement.style.setProperty('--header-height', header.offsetHeight + 'px');
+            // Set a NEW variable to avoid CSS circular dependency
+            document.documentElement.style.setProperty('--actual-header-height', header.offsetHeight + 'px');
         }
     }, 100);
 });
 
 // --- DATA MANAGEMENT ---
 function loadData() {
-    // Templates
-    const storedTemplates = localStorage.getItem('workout_templates');
-    if (storedTemplates) {
-        templates = JSON.parse(storedTemplates);
-    } else {
-        templates = [{
-            id: "plan_default",
-            name: "Default Plan",
-            active: true,
-            schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] }))
-        }];
-        saveTemplates();
-    }
+    const t = localStorage.getItem('workout_templates');
+    templates = t ? JSON.parse(t) : [{ id: "p1", name: "Default Plan", active: true, schedule: Array(7).fill(null).map(()=>({isRest:false, exercises:[]})) }];
+    if (!t) saveTemplates();
 
-    // Custom Exercises
-    const storedCustom = localStorage.getItem('custom_exercises');
-    customExercises = storedCustom ? JSON.parse(storedCustom) : [];
+    const c = localStorage.getItem('custom_exercises');
+    customExercises = c ? JSON.parse(c) : [];
 
-    // Favorites
-    const storedFavs = localStorage.getItem('exercise_favorites');
-    favorites = storedFavs ? JSON.parse(storedFavs) : [];
+    const f = localStorage.getItem('exercise_favorites');
+    favorites = f ? JSON.parse(f) : [];
 }
 
 function saveTemplates() { localStorage.setItem('workout_templates', JSON.stringify(templates)); }
@@ -60,9 +46,7 @@ async function loadExerciseDatabase() {
         const response = await fetch('../data/fitness_exercises_by_bodyPart.json');
         if (!response.ok) throw new Error("JSON not found");
         exercisesDB = await response.json();
-    } catch (error) {
-        console.error("DB Load Error:", error);
-    }
+    } catch (e) { console.error(e); }
 }
 
 // --- UI RENDERING ---
@@ -70,361 +54,250 @@ function initUI() {
     renderTemplateTabs();
     renderDaySelector();
     renderDayPlan();
-    const searchInput = document.getElementById('search-bar');
-    if (searchInput) searchInput.addEventListener('input', renderLibraryList);
+    const s = document.getElementById('search-bar');
+    if (s) s.addEventListener('input', renderLibraryList);
 }
 
 // --- PLAN TABS ---
 function renderTemplateTabs() {
-    const container = document.getElementById('template-tabs');
-    if (!container) return;
-    container.innerHTML = '';
-
-    templates.forEach((temp, index) => {
+    const c = document.getElementById('template-tabs');
+    if (!c) return;
+    c.innerHTML = '';
+    templates.forEach((t, i) => {
         const tab = document.createElement('div');
-        tab.className = `template-tab ${index === currentTemplateIndex ? 'active' : ''}`;
+        tab.className = `template-tab ${i === currentTemplateIndex ? 'active' : ''}`;
         
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = temp.name;
-        nameSpan.onclick = () => {
-            currentTemplateIndex = index;
-            renderTemplateTabs();
-            renderDayPlan();
-        };
-        tab.appendChild(nameSpan);
+        const span = document.createElement('span');
+        span.textContent = t.name;
+        span.onclick = () => { currentTemplateIndex = i; renderTemplateTabs(); renderDayPlan(); };
+        tab.appendChild(span);
 
-        // Edit/Delete Controls for Active Tab
-        if (index === currentTemplateIndex) {
+        if (i === currentTemplateIndex) {
             const controls = document.createElement('div');
             controls.className = 'tab-controls';
             
-            const renameBtn = document.createElement('span');
-            renameBtn.innerHTML = '✎';
-            renameBtn.onclick = (e) => { e.stopPropagation(); renamePlan(index); };
-            
-            controls.appendChild(renameBtn);
+            const rename = document.createElement('span');
+            rename.innerHTML = '✎';
+            rename.onclick = (e) => { e.stopPropagation(); renamePlan(i); };
+            controls.appendChild(rename);
 
             if (templates.length > 1) {
-                const delBtn = document.createElement('span');
-                delBtn.innerHTML = '🗑';
-                delBtn.className = 'del-btn';
-                delBtn.onclick = (e) => { e.stopPropagation(); deletePlan(index); };
-                controls.appendChild(delBtn);
+                const del = document.createElement('span');
+                del.innerHTML = '🗑';
+                del.className = 'del-btn';
+                del.onclick = (e) => { e.stopPropagation(); deletePlan(i); };
+                controls.appendChild(del);
             }
             tab.appendChild(controls);
         }
-        container.appendChild(tab);
+        c.appendChild(tab);
     });
-
-    // Add New Plan Button
-    const addBtn = document.createElement('div');
-    addBtn.className = 'template-tab';
-    addBtn.innerHTML = '+';
-    addBtn.onclick = createNewPlan;
-    container.appendChild(addBtn);
+    const add = document.createElement('div');
+    add.className = 'template-tab'; add.innerHTML = '+';
+    add.onclick = createNewPlan;
+    c.appendChild(add);
 }
 
 function createNewPlan() {
-    const name = prompt("Plan Name:", "New Plan");
-    if (!name) return;
-    templates.push({
-        id: "plan_" + Date.now(),
-        name: name,
-        active: false,
-        schedule: Array(7).fill(null).map(() => ({ isRest: false, exercises: [] }))
-    });
-    saveTemplates();
-    currentTemplateIndex = templates.length - 1;
-    renderTemplateTabs();
-    renderDayPlan();
+    const n = prompt("Plan Name:", "New Plan");
+    if(!n) return;
+    templates.push({ id: "p"+Date.now(), name: n, active: false, schedule: Array(7).fill(null).map(()=>({isRest:false, exercises:[]})) });
+    saveTemplates(); currentTemplateIndex = templates.length-1; renderTemplateTabs(); renderDayPlan();
 }
-
-function renamePlan(index) {
-    const newName = prompt("Rename Plan:", templates[index].name);
-    if (newName) {
-        templates[index].name = newName;
-        saveTemplates();
-        renderTemplateTabs();
-    }
+function renamePlan(i) {
+    const n = prompt("Rename:", templates[i].name);
+    if(n) { templates[i].name = n; saveTemplates(); renderTemplateTabs(); }
 }
-
-function deletePlan(index) {
-    if (confirm(`Delete "${templates[index].name}"?`)) {
-        templates.splice(index, 1);
-        currentTemplateIndex = 0;
-        saveTemplates();
-        renderTemplateTabs();
-        renderDayPlan();
-    }
+function deletePlan(i) {
+    if(confirm("Delete plan?")) { templates.splice(i,1); currentTemplateIndex=0; saveTemplates(); renderTemplateTabs(); renderDayPlan(); }
 }
 
 // --- DAY SELECTOR ---
 function renderDaySelector() {
-    const container = document.getElementById('day-selector');
-    if (!container) return;
-    container.innerHTML = '';
-    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    labels.forEach((label, index) => {
-        const bubble = document.createElement('div');
-        bubble.className = `day-bubble ${index === currentDayIndex ? 'active' : ''}`;
-        bubble.textContent = label;
-        bubble.onclick = () => {
-            currentDayIndex = index;
-            renderDaySelector();
-            renderDayPlan();
-        };
-        container.appendChild(bubble);
+    const c = document.getElementById('day-selector');
+    if(!c) return; c.innerHTML='';
+    ['M','T','W','T','F','S','S'].forEach((l,i)=>{
+        const b = document.createElement('div');
+        b.className = `day-bubble ${i===currentDayIndex?'active':''}`;
+        b.textContent = l;
+        b.onclick = () => { currentDayIndex=i; renderDaySelector(); renderDayPlan(); };
+        c.appendChild(b);
     });
 }
 
-// --- MAIN WORKOUT LIST ---
+// --- WORKOUT LIST ---
 function renderDayPlan() {
-    const dayHeader = document.getElementById('current-day-name');
-    if (dayHeader) dayHeader.textContent = daysOfWeek[currentDayIndex];
+    const h = document.getElementById('current-day-name');
+    if(h) h.textContent = daysOfWeek[currentDayIndex];
+    
+    const plan = templates[currentTemplateIndex].schedule[currentDayIndex];
+    const list = document.getElementById('exercise-list');
+    const toggle = document.getElementById('rest-toggle');
+    const btn = document.querySelector('.btn-add');
 
-    const currentPlan = templates[currentTemplateIndex].schedule[currentDayIndex];
-    const listContainer = document.getElementById('exercise-list');
-    const restToggle = document.getElementById('rest-toggle');
-    const addBtn = document.querySelector('.btn-add');
-
-    // Rest Toggle
-    if (restToggle) {
-        const newToggle = restToggle.cloneNode(true);
-        restToggle.parentNode.replaceChild(newToggle, restToggle);
-        newToggle.checked = currentPlan.isRest;
-        newToggle.addEventListener('change', (e) => {
+    if (toggle) {
+        const n = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(n, toggle);
+        n.checked = plan.isRest;
+        n.addEventListener('change', (e) => {
             templates[currentTemplateIndex].schedule[currentDayIndex].isRest = e.target.checked;
-            saveTemplates();
-            renderDayPlan();
+            saveTemplates(); renderDayPlan();
         });
     }
 
-    // Hide "Add" button if Rest Day
-    if (addBtn) {
-        addBtn.style.display = currentPlan.isRest ? 'none' : 'block';
-    }
+    if(btn) btn.style.display = plan.isRest ? 'none' : 'block';
+    list.innerHTML = '';
 
-    listContainer.innerHTML = '';
-
-    if (currentPlan.isRest) {
-        listContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>Rest Day Active 😴</p></div>`;
+    if (plan.isRest) {
+        list.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>Rest Day Active 😴</p></div>`;
         return;
     }
 
-    if (currentPlan.exercises.length === 0) {
-        listContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>No exercises planned.</p></div>`;
+    if (plan.exercises.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>No exercises planned.</p></div>`;
     } else {
-        currentPlan.exercises.forEach((exercise, exIndex) => {
+        plan.exercises.forEach((ex, exIdx) => {
             const card = document.createElement('div');
             card.className = 'exercise-card';
             
-            // Ensure setsData exists
-            if (!exercise.setsData) {
-                exercise.setsData = Array(exercise.sets || 3).fill({ weight: 0, reps: exercise.targetReps || 0 });
-            }
+            if (!ex.setsData) ex.setsData = Array(ex.sets||3).fill({weight:0, reps: ex.targetReps||0});
 
             let setsHtml = '';
-            exercise.setsData.forEach((set, setIndex) => {
+            ex.setsData.forEach((s, sIdx) => {
                 setsHtml += `
                     <div class="set-row">
-                        <span class="set-num">${setIndex + 1}</span>
-                        <input type="number" placeholder="kg" value="${set.weight}" min="0" onchange="updateSetData(${exIndex}, ${setIndex}, 'weight', this.value)">
-                        <input type="number" placeholder="reps" value="${set.reps}" min="0" onchange="updateSetData(${exIndex}, ${setIndex}, 'reps', this.value)">
-                    </div>
-                `;
+                        <span class="set-num">${sIdx+1}</span>
+                        <input type="number" placeholder="kg" value="${s.weight}" min="0" onchange="updateSet(${exIdx}, ${sIdx}, 'weight', this.value)">
+                        <input type="number" placeholder="reps" value="${s.reps}" min="0" onchange="updateSet(${exIdx}, ${sIdx}, 'reps', this.value)">
+                    </div>`;
             });
 
+            // UPDATED: Changed buttons to + and -
             card.innerHTML = `
                 <div class="ex-header">
-                    <span class="ex-name">${exercise.name}</span>
-                    <span class="ex-remove" onclick="removeExercise(${exIndex})">×</span>
+                    <span class="ex-name">${ex.name}</span>
+                    <span class="ex-remove" onclick="removeEx(${exIdx})">×</span>
                 </div>
                 <div class="ex-sets-container">
-                    <div class="set-header"><span>Set</span><span>Weight (kg)</span><span>Reps</span></div>
+                    <div class="set-header"><span>Set</span><span>Weight</span><span>Reps</span></div>
                     ${setsHtml}
                     <div class="set-actions">
-                        <button class="btn-set-action" onclick="addSet(${exIndex})">+ Set</button>
-                        <button class="btn-set-action remove" onclick="removeSet(${exIndex})">- Set</button>
+                        <button class="btn-set-action" onclick="addSet(${exIdx})">+</button>
+                        <button class="btn-set-action remove" onclick="removeSet(${exIdx})">-</button>
                     </div>
-                </div>
-            `;
-            listContainer.appendChild(card);
+                </div>`;
+            list.appendChild(card);
         });
     }
 }
 
-// --- ACTIONS ---
-function updateSetData(exIndex, setIndex, field, value) {
-    if (value < 0) value = 0; // Prevent negatives
-    templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exIndex].setsData[setIndex][field] = value;
+function updateSet(exI, sI, f, v) {
+    if(v<0) v=0;
+    templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exI].setsData[sI][f] = v;
     saveTemplates();
 }
-
-function addSet(exIndex) {
-    const ex = templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exIndex];
-    const lastSet = ex.setsData[ex.setsData.length - 1] || { weight: 0, reps: 0 };
-    ex.setsData.push({ ...lastSet });
-    saveTemplates();
-    renderDayPlan();
+function addSet(exI) {
+    const ex = templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exI];
+    const last = ex.setsData[ex.setsData.length-1] || {weight:0, reps:0};
+    ex.setsData.push({...last}); saveTemplates(); renderDayPlan();
 }
-
-function removeSet(exIndex) {
-    const ex = templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exIndex];
-    if (ex.setsData.length > 1) {
-        ex.setsData.pop();
-        saveTemplates();
-        renderDayPlan();
+function removeSet(exI) {
+    const ex = templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exI];
+    if(ex.setsData.length>1) { ex.setsData.pop(); saveTemplates(); renderDayPlan(); }
+}
+function removeEx(i) {
+    if(confirm("Remove exercise?")) {
+        templates[currentTemplateIndex].schedule[currentDayIndex].exercises.splice(i, 1);
+        saveTemplates(); renderDayPlan();
     }
 }
 
-function removeExercise(index) {
-    if (confirm("Remove exercise?")) {
-        templates[currentTemplateIndex].schedule[currentDayIndex].exercises.splice(index, 1);
-        saveTemplates();
-        renderDayPlan();
-    }
-}
+// --- LIBRARY ---
+let currentFilter = 'chest'; // UPDATED: Changed default from 'all' to 'chest'
 
-// --- LIBRARY MODAL ---
-let currentFilter = 'all';
-
-function openLibrary() {
-    document.getElementById('library-modal').classList.add('active');
-    filterBodyPart('all'); 
-}
-
-function closeLibrary() {
-    document.getElementById('library-modal').classList.remove('active');
-}
+function openLibrary() { document.getElementById('library-modal').classList.add('active'); filterBodyPart('chest'); }
+function closeLibrary() { document.getElementById('library-modal').classList.remove('active'); }
 
 function createCustomExercise() {
-    const name = prompt("Exercise Name:");
-    if (!name) return;
-    const target = prompt("Body Part (chest, back, legs, arms, abs, shoulders, cardio):");
+    const rawName = prompt("Name:"); 
+    if(!rawName) return;
     
-    const newEx = {
-        id: "cust_" + Date.now(),
-        name: name,
-        target: "custom",
-        bodyPart: target ? target.toLowerCase() : "custom", 
-        isCustom: true
-    };
+    // UPDATED: Capitalize first letter
+    const n = rawName.charAt(0).toUpperCase() + rawName.slice(1);
     
-    customExercises.push(newEx);
-    saveCustom();
-    addExerciseToPlan(newEx.id, newEx.name);
+    const t = prompt("Body Part (chest, back...):");
+    const newEx = { id: "c"+Date.now(), name: n, target: "custom", bodyPart: t?t.toLowerCase():"custom", isCustom: true };
+    customExercises.push(newEx); saveCustom(); addExToPlan(newEx.id, newEx.name);
 }
 
-function filterBodyPart(category) {
-    currentFilter = category;
+function deleteCustomExercise(id, e) {
+    e.stopPropagation();
+    if(confirm("Delete this custom exercise?")) {
+        customExercises = customExercises.filter(ex => ex.id !== id);
+        saveCustom();
+        renderLibraryList(); // Refresh list
+    }
+}
+
+function filterBodyPart(cat) {
+    currentFilter = cat;
     document.querySelectorAll('.chip').forEach(c => {
         c.classList.remove('active');
-        if (c.innerText.toLowerCase() === category) c.classList.add('active');
-        if (category === 'all' && c.innerText.toLowerCase() === 'all') c.classList.add('active');
+        if(c.innerText.toLowerCase() === cat) c.classList.add('active');
     });
     renderLibraryList();
 }
 
 function renderLibraryList() {
-    const query = document.getElementById('search-bar').value.toLowerCase();
-    const container = document.getElementById('library-list');
-    container.innerHTML = '';
-
+    const q = document.getElementById('search-bar').value.toLowerCase();
+    const c = document.getElementById('library-list'); c.innerHTML='';
     let list = [];
-    // MAPPING LOGIC
-    const map = {
-        'chest': ['chest'],
-        'back': ['back'],
-        'shoulders': ['shoulders', 'neck'],
-        'arms': ['lower arms', 'upper arms'],
-        'legs': ['lower legs', 'upper legs'],
-        'abs': ['waist'],
-        'cardio': ['cardio']
-    };
+    const map = { 'chest':['chest'], 'back':['back'], 'shoulders':['shoulders','neck'], 'arms':['lower arms','upper arms'], 'legs':['lower legs','upper legs'], 'abs':['waist'], 'cardio':['cardio'] };
 
-    if (currentFilter === 'favorites') {
-        // Fix: Force String conversion for IDs to match JSON numbers vs Custom Strings
-        const favIds = new Set(favorites.map(String));
-        
-        Object.values(exercisesDB).flat().forEach(ex => {
-            if (favIds.has(String(ex.id))) list.push(ex);
-        });
-        customExercises.forEach(ex => {
-            if (favIds.has(String(ex.id))) list.push(ex);
-        });
-
-    } else if (currentFilter === 'custom') {
+    if(currentFilter==='favorites') {
+        const fIds = new Set(favorites.map(String));
+        Object.values(exercisesDB).flat().forEach(e => { if(fIds.has(String(e.id))) list.push(e); });
+        customExercises.forEach(e => { if(fIds.has(String(e.id))) list.push(e); });
+    } else if(currentFilter==='custom') {
         list = customExercises;
-    } else if (currentFilter === 'all') {
-        Object.values(exercisesDB).flat().forEach(ex => list.push(ex));
-        list = list.concat(customExercises);
     } else {
-        const jsonKeys = map[currentFilter] || [];
-        jsonKeys.forEach(key => {
-            if (exercisesDB[key]) list = list.concat(exercisesDB[key]);
-        });
-        const matchingCustom = customExercises.filter(ex => ex.bodyPart === currentFilter);
-        list = list.concat(matchingCustom);
+        (map[currentFilter]||[]).forEach(k => { if(exercisesDB[k]) list = list.concat(exercisesDB[k]); });
+        list = list.concat(customExercises.filter(e => e.bodyPart === currentFilter));
     }
 
-    if (query) {
-        list = list.filter(ex => ex.name.toLowerCase().includes(query));
-    }
+    if(q) list = list.filter(e => e.name.toLowerCase().includes(q));
+    
+    if(list.length===0) { c.innerHTML='<div style="padding:20px;text-align:center;color:#666">No results</div>'; return; }
 
-    if (list.length === 0) {
-        container.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No exercises found.</div>`;
-        return;
-    }
-
-    // Removed the .slice() limit to show ALL exercises
     list.forEach(ex => {
         const isFav = favorites.map(String).includes(String(ex.id));
-        const item = document.createElement('div');
-        item.className = 'lib-item';
+        const item = document.createElement('div'); item.className='lib-item';
+        
+        // UPDATED: Added delete button for custom exercises
+        let deleteBtn = '';
+        if(ex.isCustom) {
+            deleteBtn = `<span class="lib-delete" onclick="deleteCustomExercise('${ex.id}', event)" style="margin-right:10px; color:#ff4444; cursor:pointer;">🗑</span>`;
+        }
+
         item.innerHTML = `
-            <div class="lib-info">
-                <span class="lib-name">${ex.name}</span>
-                <div class="lib-meta">${ex.target}</div>
-            </div>
+            <div class="lib-info"><span class="lib-name">${ex.name}</span><div class="lib-meta">${ex.target}</div></div>
             <div class="lib-actions">
-                <span class="lib-star ${isFav ? 'starred' : ''}" onclick="toggleFav('${ex.id}', this)">★</span>
-                <button class="btn-add-small" onclick="addExerciseToPlan('${ex.id}', '${ex.name.replace(/'/g, "\\'")}')">+</button>
-            </div>
-        `;
-        container.appendChild(item);
+                ${deleteBtn}
+                <span class="lib-star ${isFav?'starred':''}" onclick="toggleFav('${ex.id}', this)">★</span>
+                <button class="btn-add-small" onclick="addExToPlan('${ex.id}', '${ex.name.replace(/'/g, "\\'")}')">+</button>
+            </div>`;
+        c.appendChild(item);
     });
 }
 
-function toggleFav(id, starElement) {
-    const strId = String(id);
-    const idx = favorites.map(String).indexOf(strId);
-    
-    if (idx === -1) {
-        favorites.push(strId); 
-        starElement.classList.add('starred');
-    } else {
-        favorites.splice(idx, 1);
-        starElement.classList.remove('starred');
-    }
-    saveFavorites();
-    // Only refresh if we are currently looking at the favorites tab
-    if (currentFilter === 'favorites') renderLibraryList();
+function toggleFav(id, el) {
+    const sId = String(id); const idx = favorites.indexOf(sId);
+    if(idx===-1) { favorites.push(sId); el.classList.add('starred'); } else { favorites.splice(idx,1); el.classList.remove('starred'); }
+    saveFavorites(); if(currentFilter==='favorites') renderLibraryList();
 }
 
-function addExerciseToPlan(id, name) {
-    const newEx = {
-        id: id,
-        name: name,
-        // New Data Structure: setsData array
-        setsData: [
-            { weight: 0, reps: 0 },
-            { weight: 0, reps: 0 },
-            { weight: 0, reps: 0 }
-        ]
-    };
-    
+function addExToPlan(id, name) {
+    const newEx = { id: id, name: name, setsData: [{weight:0, reps:0}, {weight:0, reps:0}, {weight:0, reps:0}] };
     templates[currentTemplateIndex].schedule[currentDayIndex].exercises.push(newEx);
-    saveTemplates();
-    closeLibrary();
-    renderDayPlan();
+    saveTemplates(); closeLibrary(); renderDayPlan();
 }

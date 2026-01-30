@@ -1,7 +1,7 @@
 /* css/style.css */
 
 :root {
-    --header-height: 60px;
+    --header-height: 60px; /* Default Fallback */
     --tab-height: 50px;
     --safe-top: env(safe-area-inset-top);
     --safe-bottom: env(safe-area-inset-bottom);
@@ -25,17 +25,31 @@ body {
     padding-bottom: calc(60px + var(--safe-bottom));
 }
 
-/* Fix Inputs Zoom on iPhone */
-input, select, textarea { font-size: 16px !important; }
-input[type="number"] { -moz-appearance: textfield; }
+/* Prevent iPhone Zoom on inputs */
+input, select, textarea { 
+    font-size: 16px !important; 
+}
 
-/* --- LAYOUT COMPONENTS --- */
+/* Remove Spinner Arrows from Number Inputs */
+input[type="number"] { 
+    -moz-appearance: textfield; /* Firefox */
+    appearance: textfield;      /* Standard property (Fixes the warning) */
+}
 
-/* Top Header */
+/* Webkit (Chrome, Safari, Edge) specific fix for spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* --- TOP HEADER --- */
+/* FIXED: Height is now auto/padding based, prevents growing bug */
 .top-bar {
     position: fixed;
     top: 0; left: 0; width: 100%;
-    height: calc(var(--header-height) + var(--safe-top));
+    /* Use padding to handle safe area, not calculated height */
+    padding-top: max(15px, var(--safe-top)); 
+    padding-bottom: 15px;
     background-color: rgba(30, 30, 36, 0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #333;
@@ -43,46 +57,14 @@ input[type="number"] { -moz-appearance: textfield; }
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    padding-bottom: 15px;
 }
 .top-bar h1 { font-size: 18px; font-weight: 600; margin: 0; }
 
-/* Bottom Nav */
-.bottom-nav {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%;
-    background-color: #1E1E24;
-    border-top: 1px solid #333;
-    display: flex;
-    justify-content: space-around;
-    padding-top: 12px;
-    padding-bottom: calc(12px + var(--safe-bottom));
-    z-index: 1000;
-}
-.nav-item {
-    display: flex; flex-direction: column; align-items: center;
-    text-decoration: none; color: #666; font-size: 10px; flex: 1;
-}
-.nav-item.active { color: var(--primary-color); }
-.nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: none; stroke: currentColor; stroke-width: 2; }
-
-/* --- CONTAINERS --- */
-.container {
-    padding: 20px;
-    padding-top: calc(var(--header-height) + var(--safe-top) + 20px);
-    max-width: 600px;
-    margin: 0 auto;
-}
-.workout-container {
-    padding-top: calc(var(--header-height) + var(--safe-top) + var(--tab-height) + 20px) !important;
-}
-
-/* --- WORKOUTS SPECIFIC --- */
-
-/* Template Tabs */
+/* --- TEMPLATE TABS --- */
+/* FIXED: Uses --actual-header-height calculated by JS */
 .template-nav {
     position: fixed;
-    top: calc(var(--header-height) + var(--safe-top));
+    top: var(--actual-header-height, 80px); /* JS sets this variable */
     left: 0; width: 100%; height: var(--tab-height);
     background: #1E1E24;
     z-index: 950;
@@ -103,14 +85,25 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 .template-tab.active { background: var(--primary-color); color: white; }
 
-/* Tab Controls (Rename/Delete) */
 .tab-controls {
     display: flex; gap: 8px; border-left: 1px solid rgba(255,255,255,0.2);
     padding-left: 8px; margin-left: 4px;
 }
 .del-btn { color: #ff4444; }
 
-/* Day Selector */
+/* --- CONTAINERS --- */
+.container {
+    padding: 20px;
+    padding-top: calc(var(--actual-header-height, 80px) + 20px);
+    max-width: 600px;
+    margin: 0 auto;
+}
+/* FIXED: Workout container calculation uses new variable */
+.workout-container {
+    padding-top: calc(var(--actual-header-height, 80px) + var(--tab-height) + 20px) !important;
+}
+
+/* --- COMPONENTS --- */
 .day-selector {
     display: flex; justify-content: space-between;
     background: #222; padding: 6px; border-radius: 14px; margin-bottom: 20px;
@@ -121,7 +114,6 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 .day-bubble.active { background: var(--primary-color); color: white; font-weight: 700; }
 
-/* Exercise Card */
 .exercise-card {
     background: var(--card-bg); border-radius: 12px;
     padding: 15px; margin-bottom: 12px; border: 1px solid #333;
@@ -134,7 +126,6 @@ input[type="number"] { -moz-appearance: textfield; }
 .ex-name { font-weight: 600; font-size: 15px; color: white; }
 .ex-remove { color: #ff4444; font-size: 20px; cursor: pointer; }
 
-/* Sets Table */
 .ex-sets-container { display: flex; flex-direction: column; gap: 8px; }
 .set-header, .set-row {
     display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px;
@@ -149,11 +140,10 @@ input[type="number"] { -moz-appearance: textfield; }
 .set-actions { display: flex; gap: 10px; margin-top: 5px; }
 .btn-set-action {
     background: #333; color: var(--primary-color); border: none;
-    border-radius: 4px; padding: 6px 12px; font-size: 11px; cursor: pointer; flex: 1;
+    border-radius: 4px; padding: 6px 12px; font-size: 16px; cursor: pointer; flex: 1; font-weight: bold;
 }
 .btn-set-action.remove { color: #ff4444; }
 
-/* Buttons & Rest Toggle */
 .btn-add {
     width: 100%; padding: 14px; border-radius: 10px; font-weight: 600;
     cursor: pointer; font-size: 14px; border: 1px dashed var(--primary-color);
@@ -201,3 +191,18 @@ input:checked + .slider:before { transform: translateX(18px); }
     width: 100%; padding: 12px; background: #2A2A30; color: var(--primary-color);
     border: 1px dashed var(--primary-color); border-radius: 8px; margin-bottom: 15px; font-weight: 600; cursor: pointer;
 }
+
+/* Nav */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background-color: #1E1E24; border-top: 1px solid #333;
+    display: flex; justify-content: space-around;
+    padding-top: 12px; padding-bottom: calc(12px + var(--safe-bottom));
+    z-index: 1000;
+}
+.nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    text-decoration: none; color: #666; font-size: 10px; flex: 1;
+}
+.nav-item.active { color: var(--primary-color); }
+.nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: none; stroke: currentColor; stroke-width: 2; }
