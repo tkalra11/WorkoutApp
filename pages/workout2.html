@@ -3,34 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Workouts</title>
+    <title>Workout Carousel</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/workout2.css">
+    
     <script src="../js/script.js" defer></script>
-    <script src="../js/workouts.js" defer></script>
+    <script src="../js/workout2.js" defer></script>
 </head>
 <body>
 
     <div class="template-nav" id="template-tabs"></div>
 
-    <div class="container workout-container">
-        <div class="day-selector" id="day-selector"></div>
-
-        <div class="day-header">
-            <h2 id="current-day-name">Monday</h2>
-            <div class="rest-toggle-wrapper">
-                <span>Rest Day</span>
-                <label class="switch">
-                    <input type="checkbox" id="rest-toggle">
-                    <span class="slider"></span>
-                </label>
+    <div class="carousel-container">
+        <div class="carousel-track" id="carousel-track">
             </div>
-        </div>
-
-        <div id="exercise-list"></div>
-        <button class="btn-add" onclick="openLibrary()">+ Add Exercise</button>
     </div>
 
     <div id="library-modal" class="modal">
@@ -39,25 +25,22 @@
                 <h3>Library</h3>
                 <span class="close-modal" onclick="closeLibrary()" style="font-size:24px; padding:10px;">×</span>
             </div>
-            
             <input type="text" id="search-bar" placeholder="Search..." class="search-bar">
-            
             <button class="btn-create-custom" onclick="createCustomExercise()">+ Create Custom Exercise</button>
-
             <div class="filter-chips">
-                <span class="chip active" onclick="filterBodyPart('favorites')">Favorites</span>
+                <span class="chip active" onclick="filterBodyPart('chest')">Chest</span>
+                <span class="chip" onclick="filterBodyPart('favorites')">Favorites</span>
                 <span class="chip" onclick="filterBodyPart('custom')">Custom</span>
-                <span class="chip" onclick="filterBodyPart('chest')">Chest</span>
                 <span class="chip" onclick="filterBodyPart('back')">Back</span>
+                <span class="chip" onclick="filterBodyPart('legs')">Legs</span>
                 <span class="chip" onclick="filterBodyPart('shoulders')">Shoulders</span>
                 <span class="chip" onclick="filterBodyPart('arms')">Arms</span>
-                <span class="chip" onclick="filterBodyPart('legs')">Legs</span>
                 <span class="chip" onclick="filterBodyPart('abs')">Abs</span>
                 <span class="chip" onclick="filterBodyPart('cardio')">Cardio</span>
             </div>
-
             <div id="library-list" class="library-list"></div>
         </div>
     </div>
+
 </body>
 </html>

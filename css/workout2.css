@@ -1,0 +1,85 @@
+/* css/workout2.css */
+
+/* Hide the main container padding because the carousel needs full width */
+.carousel-container {
+    padding-top: calc(var(--actual-header-height, 60px) + var(--tab-height)); 
+    height: 100vh;
+    width: 100%;
+    background: #000; /* Darker background for carousel feel */
+    overflow: hidden;
+}
+
+/* The Scroll Track */
+.carousel-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    height: 100%;
+    padding: 20px 0; /* Vertical breathing room */
+    gap: 15px;
+    
+    /* Center the active card */
+    padding-left: 5vw; 
+    padding-right: 5vw;
+    
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Hide Scrollbar */
+.carousel-track::-webkit-scrollbar { display: none; }
+
+/* The Individual Day Card */
+.day-card {
+    flex: 0 0 90vw; /* Takes up 90% of screen width */
+    height: 80%; /* Takes up most of the vertical space */
+    scroll-snap-align: center;
+    background: #1E1E24;
+    border-radius: 24px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s;
+}
+
+/* Header inside the card */
+.day-card-header {
+    background: #2A2A30;
+    padding: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.day-card-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.day-card-subtitle {
+    font-size: 14px;
+    color: #888;
+}
+
+/* Scrollable Content inside the card */
+.day-card-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+/* Adjust Exercise Card for this view */
+.exercise-card {
+    background: #121212; /* Darker to contrast with card */
+    border: 1px solid #333;
+    margin-bottom: 15px;
+}
+
+/* Button overrides */
+.btn-add {
+    margin: 10px 0;
+    background: transparent;
+    border: 1px dashed #555;
+    color: #888;
+}
