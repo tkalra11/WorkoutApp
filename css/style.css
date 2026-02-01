@@ -7,7 +7,7 @@
     --safe-bottom: env(safe-area-inset-bottom);
     --primary-color: #4A90E2;
     --bg-color: #121212;
-    --card-bg: #2A2A30;
+    --card-bg: #1E1E24; /* Slightly lighter than bg */
 }
 
 * {
@@ -16,6 +16,22 @@
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
+}
+
+/* --- SCROLLBAR STYLING (Fixes Ugly White Bars) --- */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+    background: #333; 
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555; 
 }
 
 body {
@@ -42,7 +58,7 @@ input[type="number"]::-webkit-inner-spin-button {
     top: 0; left: 0; width: 100%;
     padding-top: max(15px, var(--safe-top)); 
     padding-bottom: 15px;
-    background-color: rgba(30, 30, 36, 0.95);
+    background-color: rgba(18, 18, 18, 0.95); /* Matched bg-color */
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #333;
     z-index: 1000;
@@ -57,15 +73,16 @@ input[type="number"]::-webkit-inner-spin-button {
     position: fixed;
     top: var(--actual-header-height, 80px);
     left: 0; width: 100%; height: var(--tab-height);
-    background: #1E1E24;
+    background: var(--bg-color);
     z-index: 950;
     border-bottom: 1px solid #333;
     display: flex; align-items: center;
     overflow-x: auto; white-space: nowrap;
     padding: 0 10px;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide scrollbar Firefox */
 }
-.template-nav::-webkit-scrollbar { display: none; }
+.template-nav::-webkit-scrollbar { display: none; /* Hide scrollbar Chrome/Safari */ }
 
 .template-tab {
     display: inline-flex; align-items: center; justify-content: center;
@@ -96,7 +113,7 @@ input[type="number"]::-webkit-inner-spin-button {
 /* --- COMPONENTS --- */
 .day-selector {
     display: flex; justify-content: space-between;
-    background: #222; padding: 6px; border-radius: 14px; margin-bottom: 20px;
+    background: var(--card-bg); padding: 6px; border-radius: 14px; margin-bottom: 20px;
 }
 .day-bubble {
     width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
@@ -106,15 +123,17 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .exercise-card {
     background: var(--card-bg); border-radius: 12px;
-    padding: 15px; margin-bottom: 12px; border: 1px solid #333;
+    padding: 15px; margin-bottom: 12px; 
+    /* Remove border for cleaner look, similar to screenshots */
+    /* border: 1px solid #333; */ 
     width: 100%; overflow: hidden;
 }
 .ex-header {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px;
 }
-.ex-name { font-weight: 600; font-size: 15px; color: white; }
-.ex-remove { color: #ff4444; font-size: 20px; cursor: pointer; }
+.ex-name { font-weight: 600; font-size: 15px; color: white; text-transform: capitalize; }
+.ex-remove { color: #666; font-size: 20px; cursor: pointer; }
 
 .ex-sets-container { display: flex; flex-direction: column; gap: 8px; }
 .set-header, .set-row {
@@ -122,15 +141,16 @@ input[type="number"]::-webkit-inner-spin-button {
     align-items: center; text-align: center;
 }
 .set-header span { font-size: 10px; color: #888; text-transform: uppercase; }
-.set-num { color: #666; font-size: 12px; }
+.set-num { color: #666; font-size: 12px; font-weight: bold; }
 .set-row input {
-    background: #121212; border: 1px solid #444; color: white;
-    padding: 8px; border-radius: 6px; text-align: center; width: 100%;
+    background: #121212; border: 1px solid #333; color: white;
+    padding: 10px; border-radius: 8px; text-align: center; width: 100%;
+    font-weight: 600;
 }
 .set-actions { display: flex; gap: 10px; margin-top: 5px; }
 .btn-set-action {
     background: #333; color: var(--primary-color); border: none;
-    border-radius: 4px; padding: 6px 12px; font-size: 16px; cursor: pointer; flex: 1; font-weight: bold;
+    border-radius: 6px; padding: 8px 12px; font-size: 16px; cursor: pointer; flex: 1; font-weight: bold;
 }
 .btn-set-action.remove { color: #ff4444; }
 
@@ -161,23 +181,22 @@ input:checked + .slider:before { transform: translateX(18px); }
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.8); z-index: 2000;
     display: none;
-    align-items: center; /* Center vertically on desktop */
-    justify-content: center; /* Center horizontally */
+    align-items: center; 
+    justify-content: center; 
 }
 .modal.active { display: flex; }
 
 .modal-content {
     background: #1E1E24;
     width: 100%;
-    /* Default for Library Modal (Wide) */
-    max-width: 600px;
+    max-width: 500px; /* Limits width on desktop */
     height: auto;
-    max-height: 90vh; /* Prevent going off-screen */
+    max-height: 85vh; 
     border-radius: 24px;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    margin: 20px; /* Safety margin */
+    margin: 20px;
 }
 
 /* Mobile: Library Modal Sticks to Bottom */
@@ -185,7 +204,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     .modal { align-items: flex-end; }
     .modal-content {
         max-width: 100%;
-        max-height: 92%;
+        max-height: 90%;
         border-radius: 24px 24px 0 0;
         margin: 0;
     }
@@ -193,17 +212,47 @@ input:checked + .slider:before { transform: translateX(18px); }
 
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .search-bar { width: 100%; padding: 12px; background: #121212; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; }
-.filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
+
+/* Filter Chips with Hidden Scrollbar */
+.filter-chips { 
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; 
+    scrollbar-width: none; 
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+
 .chip { padding: 8px 16px; background: #333; border-radius: 20px; font-size: 13px; flex-shrink: 0; cursor: pointer; }
 .chip.active { background: var(--primary-color); color: white; }
+
 .library-list { flex: 1; overflow-y: auto; }
-.lib-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #2a2a2a; }
-.lib-info { display: flex; flex-direction: column; cursor: pointer; flex: 1; }
-.lib-name { font-weight: 500; font-size: 15px; }
+
+/* FIX: Library Item Alignment */
+.lib-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 16px 0; 
+    border-bottom: 1px solid #2a2a2a; 
+}
+.lib-info { 
+    display: flex; 
+    flex-direction: column; 
+    cursor: pointer; 
+    flex: 1; 
+    margin-right: 10px; /* Space between text and buttons */
+}
+.lib-name { font-weight: 500; font-size: 15px; text-transform: capitalize; }
 .lib-meta { font-size: 12px; color: #666; margin-top: 4px; text-transform: capitalize; }
-.lib-actions { display: flex; align-items: center; gap: 15px; }
+
+/* FIX: Star and Add Button Alignment */
+.lib-actions { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    flex-shrink: 0; /* Prevent buttons from squishing */
+}
 .lib-star { font-size: 20px; color: #444; cursor: pointer; }
 .lib-star.starred { color: #FFD700; }
+
 .btn-add-small {
     width: 32px; height: 32px; background: #333; color: var(--primary-color);
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -215,22 +264,18 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 /* --- GIF MODAL UPDATES --- */
-/* Specific class to override generic modal-content behavior */
 .gif-content {
-    /* Shrink wrap to fit image content */
     width: auto !important; 
-    max-width: 90vw !important; /* Never wider than screen */
-    min-width: 300px; /* Minimum width for text */
-    height: auto !important; /* Height matches content */
+    max-width: 90vw !important; 
+    min-width: 300px; 
+    height: auto !important; 
 }
 
-/* On mobile, center the GIF modal too (instead of bottom sheet) */
 @media (max-width: 768px) {
-    /* We want the GIF modal to float in center on mobile too, looks better for square images */
     #gif-modal { align-items: center; } 
     #gif-modal .gif-content {
         margin: 20px;
-        border-radius: 24px; /* Full rounding */
+        border-radius: 24px;
         max-width: 90%;
     }
 }
@@ -244,22 +289,20 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 .gif-wrapper {
-    /* No fixed aspect ratio - let the image define size */
     background: #fff;
     border-radius: 12px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px; /* Small white border inside */
+    padding: 10px; 
 }
 
 .gif-wrapper img {
-    /* Display at native size (180px) unless screen is smaller */
     width: auto;
     height: auto;
     max-width: 100%;
-    max-height: 50vh; /* Don't be taller than half screen */
+    max-height: 50vh; 
     object-fit: contain;
     display: block;
 }
@@ -267,7 +310,7 @@ input:checked + .slider:before { transform: translateX(18px); }
 /* Bottom Nav */
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%;
-    background-color: #1E1E24; border-top: 1px solid #333;
+    background-color: var(--card-bg); border-top: 1px solid #333;
     display: flex; justify-content: space-around;
     padding-top: 12px; padding-bottom: calc(12px + var(--safe-bottom));
     z-index: 1000;

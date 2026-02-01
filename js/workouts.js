@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExerciseDatabase();
     initUI();
     
-    // Fix Header Height for CSS (Calculates actual rendered height)
     setTimeout(() => {
         const header = document.querySelector('.top-bar');
         if (header) {
@@ -143,7 +142,7 @@ function renderDaySelector() {
 function renderDayPlan() {
     const currentPlan = templates[currentTemplateIndex].schedule[currentDayIndex];
     
-    // Editable Day Name Logic
+    // Editable Day Name
     const dayHeaderInput = document.getElementById('day-name-input');
     if (dayHeaderInput) {
         dayHeaderInput.value = currentPlan.dayName || daysOfWeek[currentDayIndex];
@@ -200,8 +199,8 @@ function renderDayPlan() {
                 setsHtml += `
                     <div class="set-row">
                         <span class="set-num">${sIdx+1}</span>
-                        <input type="number" placeholder="kg" value="${s.weight}" min="0" onchange="updateSet(${exIdx}, ${sIdx}, 'weight', this.value)">
-                        <input type="number" placeholder="reps" value="${s.reps}" min="0" onchange="updateSet(${exIdx}, ${sIdx}, 'reps', this.value)">
+                        <input type="number" placeholder="kg" value="${s.weight}" min="0" onchange="updateSet(${exIdx}, ${sIdx}, 'weight', this)">
+                        <input type="number" placeholder="reps" value="${s.reps}" min="0" onchange="updateSet(${exIdx}, ${sIdx}, 'reps', this)">
                     </div>`;
             });
 
@@ -223,11 +222,20 @@ function renderDayPlan() {
     }
 }
 
-function updateSet(exI, sI, f, v) {
-    if(v<0) v=0;
+// UPDATED: Prevent Negative Numbers
+function updateSet(exI, sI, f, inputElement) {
+    let v = parseFloat(inputElement.value);
+    
+    // Strict check: if negative or empty/NaN, set to 0
+    if (isNaN(v) || v < 0) {
+        v = 0;
+        inputElement.value = 0; // Update UI immediately
+    }
+    
     templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exI].setsData[sI][f] = v;
     saveTemplates();
 }
+
 function addSet(exI) {
     const ex = templates[currentTemplateIndex].schedule[currentDayIndex].exercises[exI];
     const last = ex.setsData[ex.setsData.length-1] || {weight:0, reps:0};
@@ -254,12 +262,10 @@ function openLibrary() {
 
 function closeLibrary() { document.getElementById('library-modal').classList.remove('active'); }
 
-// UPDATED: Formatted Text Logic
 function showExerciseDetails(name, target, gifUrl) {
     const modal = document.getElementById('gif-modal');
     document.getElementById('gif-title').textContent = name;
     
-    // Format text: "Muscle used: Chest"
     const formattedTarget = target ? (target.charAt(0).toUpperCase() + target.slice(1)) : 'Unknown';
     document.getElementById('gif-target').textContent = `Muscle used: ${formattedTarget}`;
     
