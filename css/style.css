@@ -1,7 +1,7 @@
 /* css/style.css */
 
 :root {
-    --header-height: 60px; /* Default Fallback */
+    --header-height: 60px;
     --tab-height: 50px;
     --safe-top: env(safe-area-inset-top);
     --safe-bottom: env(safe-area-inset-bottom);
@@ -25,29 +25,21 @@ body {
     padding-bottom: calc(60px + var(--safe-bottom));
 }
 
-/* Prevent iPhone Zoom on inputs */
-input, select, textarea { 
-    font-size: 16px !important; 
-}
-
-/* Remove Spinner Arrows from Number Inputs */
+input, select, textarea { font-size: 16px !important; }
 input[type="number"] { 
-    -moz-appearance: textfield; /* Firefox */
-    appearance: textfield;      /* Standard property (Fixes the warning) */
+    -moz-appearance: textfield; 
+    appearance: textfield;
 }
-
-/* Webkit (Chrome, Safari, Edge) specific fix for spinners */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
 /* --- TOP HEADER --- */
-/* FIXED: Height is now auto/padding based, prevents growing bug */
 .top-bar {
     position: fixed;
     top: 0; left: 0; width: 100%;
-    /* Use padding to handle safe area, not calculated height */
     padding-top: max(15px, var(--safe-top)); 
     padding-bottom: 15px;
     background-color: rgba(30, 30, 36, 0.95);
@@ -61,10 +53,9 @@ input[type="number"]::-webkit-inner-spin-button {
 .top-bar h1 { font-size: 18px; font-weight: 600; margin: 0; }
 
 /* --- TEMPLATE TABS --- */
-/* FIXED: Uses --actual-header-height calculated by JS */
 .template-nav {
     position: fixed;
-    top: var(--actual-header-height, 80px); /* JS sets this variable */
+    top: var(--actual-header-height, 80px);
     left: 0; width: 100%; height: var(--tab-height);
     background: #1E1E24;
     z-index: 950;
@@ -98,7 +89,6 @@ input[type="number"]::-webkit-inner-spin-button {
     max-width: 600px;
     margin: 0 auto;
 }
-/* FIXED: Workout container calculation uses new variable */
 .workout-container {
     padding-top: calc(var(--actual-header-height, 80px) + var(--tab-height) + 20px) !important;
 }
@@ -159,7 +149,13 @@ input[type="number"]::-webkit-inner-spin-button {
 input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(18px); }
 
-/* Modal */
+/* --- LIBRARY & EDITABLE HEADER --- */
+.day-name-input {
+    background: transparent; border: none; color: white; font-size: 20px; font-weight: 700;
+    width: 60%; border-bottom: 1px dashed transparent; transition: 0.2s; padding: 2px 0;
+}
+.day-name-input:focus { outline: none; border-bottom: 1px dashed #4A90E2; }
+
 .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: flex-end;
@@ -176,7 +172,7 @@ input:checked + .slider:before { transform: translateX(18px); }
 .chip.active { background: var(--primary-color); color: white; }
 .library-list { flex: 1; overflow-y: auto; }
 .lib-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #2a2a2a; }
-.lib-info { display: flex; flex-direction: column; }
+.lib-info { display: flex; flex-direction: column; cursor: pointer; flex: 1; }
 .lib-name { font-weight: 500; font-size: 15px; }
 .lib-meta { font-size: 12px; color: #666; margin-top: 4px; text-transform: capitalize; }
 .lib-actions { display: flex; align-items: center; gap: 15px; }
@@ -192,7 +188,43 @@ input:checked + .slider:before { transform: translateX(18px); }
     border: 1px dashed var(--primary-color); border-radius: 8px; margin-bottom: 15px; font-weight: 600; cursor: pointer;
 }
 
-/* Nav */
+/* --- GIF MODAL UPDATES --- */
+.gif-content {
+    height: auto !important;
+    max-height: 85%;
+    min-height: 300px;
+}
+
+.gif-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+}
+
+.gif-wrapper {
+    width: 100%;
+    /* UPDATED: Removed fixed height, added aspect-ratio for better fit */
+    aspect-ratio: 4 / 3; 
+    background: #fff; /* White background to hide black boundaries */
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gif-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Ensures full image is visible */
+    image-rendering: -webkit-optimize-contrast; /* Sharpens image */
+    display: block;
+}
+
+/* Bottom Nav */
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: #1E1E24; border-top: 1px solid #333;
@@ -206,63 +238,3 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 .nav-item.active { color: var(--primary-color); }
 .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: none; stroke: currentColor; stroke-width: 2; }
-
-/* Add/Update these sections in css/style.css */
-
-/* --- EDITABLE DAY HEADER --- */
-.day-name-input {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
-    width: 60%;
-    border-bottom: 1px dashed transparent;
-    transition: 0.2s;
-    padding: 2px 0;
-}
-
-.day-name-input:focus {
-    outline: none;
-    border-bottom: 1px dashed #4A90E2;
-}
-
-/* --- GIF MODAL --- */
-.gif-content {
-    height: auto !important; /* Allow it to fit content */
-    max-height: 80%;
-    min-height: 400px;
-}
-
-.gif-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-}
-
-.gif-wrapper {
-    width: 100%;
-    height: 300px;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.gif-wrapper img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-/* Update lib-info cursor to indicate clickability */
-.lib-info { 
-    display: flex; 
-    flex-direction: column; 
-    cursor: pointer; /* NEW */
-    flex: 1; /* Allow click area to expand */
-}

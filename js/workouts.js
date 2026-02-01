@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExerciseDatabase();
     initUI();
     
+    // Fix Header Height for CSS (Calculates actual rendered height)
     setTimeout(() => {
         const header = document.querySelector('.top-bar');
         if (header) {
@@ -244,21 +245,24 @@ function removeEx(i) {
 }
 
 // --- LIBRARY ---
-// UPDATED: Default is now favorites
 let currentFilter = 'favorites'; 
 
 function openLibrary() { 
     document.getElementById('library-modal').classList.add('active'); 
-    // UPDATED: Open directly to favorites
     filterBodyPart('favorites'); 
 }
 
 function closeLibrary() { document.getElementById('library-modal').classList.remove('active'); }
 
+// UPDATED: Formatted Text Logic
 function showExerciseDetails(name, target, gifUrl) {
     const modal = document.getElementById('gif-modal');
     document.getElementById('gif-title').textContent = name;
-    document.getElementById('gif-target').textContent = target;
+    
+    // Format text: "Muscle used: Chest"
+    const formattedTarget = target ? (target.charAt(0).toUpperCase() + target.slice(1)) : 'Unknown';
+    document.getElementById('gif-target').textContent = `Muscle used: ${formattedTarget}`;
+    
     const img = document.getElementById('gif-image');
     img.src = gifUrl || 'https://via.placeholder.com/300x200?text=No+GIF+Available';
     modal.classList.add('active');
