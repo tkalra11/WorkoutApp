@@ -156,45 +156,38 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 .day-name-input:focus { outline: none; border-bottom: 1px dashed #4A90E2; }
 
-/* MODAL CONTAINER - FIXED FOR DESKTOP */
+/* SHARED MODAL STYLES */
 .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.8); z-index: 2000;
     display: none;
-    /* Center modal on desktop/tablet by default */
-    align-items: center; 
-    justify-content: center;
+    align-items: center; /* Center vertically on desktop */
+    justify-content: center; /* Center horizontally */
 }
 .modal.active { display: flex; }
 
 .modal-content {
     background: #1E1E24;
     width: 100%;
-    /* FIXED: Prevent full-width on desktop */
-    max-width: 500px;
-    /* Height adjusts to content, with limits */
+    /* Default for Library Modal (Wide) */
+    max-width: 600px;
     height: auto;
-    max-height: 90%;
+    max-height: 90vh; /* Prevent going off-screen */
     border-radius: 24px;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    position: relative;
-    /* Ensure no weird margin offsets */
-    margin: 0;
+    margin: 20px; /* Safety margin */
 }
 
-/* Mobile-Specific Overrides to keep bottom-sheet feel on phones */
+/* Mobile: Library Modal Sticks to Bottom */
 @media (max-width: 768px) {
-    .modal {
-        align-items: flex-end; /* Stick to bottom */
-    }
+    .modal { align-items: flex-end; }
     .modal-content {
-        border-radius: 24px 24px 0 0; /* Only top corners rounded */
         max-width: 100%;
         max-height: 92%;
-        /* Ensure it touches bottom */
-        margin-bottom: 0; 
+        border-radius: 24px 24px 0 0;
+        margin: 0;
     }
 }
 
@@ -222,9 +215,24 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 /* --- GIF MODAL UPDATES --- */
+/* Specific class to override generic modal-content behavior */
 .gif-content {
-    /* Allow height to shrink to fit image */
-    min-height: 300px;
+    /* Shrink wrap to fit image content */
+    width: auto !important; 
+    max-width: 90vw !important; /* Never wider than screen */
+    min-width: 300px; /* Minimum width for text */
+    height: auto !important; /* Height matches content */
+}
+
+/* On mobile, center the GIF modal too (instead of bottom sheet) */
+@media (max-width: 768px) {
+    /* We want the GIF modal to float in center on mobile too, looks better for square images */
+    #gif-modal { align-items: center; } 
+    #gif-modal .gif-content {
+        margin: 20px;
+        border-radius: 24px; /* Full rounding */
+        max-width: 90%;
+    }
 }
 
 .gif-body {
@@ -232,30 +240,27 @@ input:checked + .slider:before { transform: translateX(18px); }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
     width: 100%;
 }
 
 .gif-wrapper {
-    width: 100%;
-    /* Keep 4:3 ratio for consistent box size */
-    aspect-ratio: 4 / 3; 
+    /* No fixed aspect ratio - let the image define size */
     background: #fff;
     border-radius: 12px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 10px; /* Small white border inside */
 }
 
 .gif-wrapper img {
-    /* FIXED: Prevent extreme upscaling (blur) on wide screens */
-    max-width: 100%;
-    max-height: 100%;
-    /* Allow native size to prevent blur */
-    width: auto; 
+    /* Display at native size (180px) unless screen is smaller */
+    width: auto;
     height: auto;
-    object-fit: contain; 
+    max-width: 100%;
+    max-height: 50vh; /* Don't be taller than half screen */
+    object-fit: contain;
     display: block;
 }
 
