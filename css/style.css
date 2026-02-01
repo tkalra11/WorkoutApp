@@ -149,22 +149,55 @@ input[type="number"]::-webkit-inner-spin-button {
 input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(18px); }
 
-/* --- LIBRARY & EDITABLE HEADER --- */
+/* --- LIBRARY & MODALS --- */
 .day-name-input {
     background: transparent; border: none; color: white; font-size: 20px; font-weight: 700;
     width: 60%; border-bottom: 1px dashed transparent; transition: 0.2s; padding: 2px 0;
 }
 .day-name-input:focus { outline: none; border-bottom: 1px dashed #4A90E2; }
 
+/* MODAL CONTAINER - FIXED FOR DESKTOP */
 .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: flex-end;
+    background: rgba(0,0,0,0.8); z-index: 2000;
+    display: none;
+    /* Center modal on desktop/tablet by default */
+    align-items: center; 
+    justify-content: center;
 }
 .modal.active { display: flex; }
+
 .modal-content {
-    background: #1E1E24; width: 100%; height: 92%; border-radius: 24px 24px 0 0;
-    padding: 20px; display: flex; flex-direction: column;
+    background: #1E1E24;
+    width: 100%;
+    /* FIXED: Prevent full-width on desktop */
+    max-width: 500px;
+    /* Height adjusts to content, with limits */
+    height: auto;
+    max-height: 90%;
+    border-radius: 24px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Ensure no weird margin offsets */
+    margin: 0;
 }
+
+/* Mobile-Specific Overrides to keep bottom-sheet feel on phones */
+@media (max-width: 768px) {
+    .modal {
+        align-items: flex-end; /* Stick to bottom */
+    }
+    .modal-content {
+        border-radius: 24px 24px 0 0; /* Only top corners rounded */
+        max-width: 100%;
+        max-height: 92%;
+        /* Ensure it touches bottom */
+        margin-bottom: 0; 
+    }
+}
+
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .search-bar { width: 100%; padding: 12px; background: #121212; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; }
 .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; }
@@ -190,8 +223,7 @@ input:checked + .slider:before { transform: translateX(18px); }
 
 /* --- GIF MODAL UPDATES --- */
 .gif-content {
-    height: auto !important;
-    max-height: 85%;
+    /* Allow height to shrink to fit image */
     min-height: 300px;
 }
 
@@ -206,9 +238,9 @@ input:checked + .slider:before { transform: translateX(18px); }
 
 .gif-wrapper {
     width: 100%;
-    /* UPDATED: Removed fixed height, added aspect-ratio for better fit */
+    /* Keep 4:3 ratio for consistent box size */
     aspect-ratio: 4 / 3; 
-    background: #fff; /* White background to hide black boundaries */
+    background: #fff;
     border-radius: 12px;
     overflow: hidden;
     display: flex;
@@ -217,10 +249,13 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 .gif-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Ensures full image is visible */
-    image-rendering: -webkit-optimize-contrast; /* Sharpens image */
+    /* FIXED: Prevent extreme upscaling (blur) on wide screens */
+    max-width: 100%;
+    max-height: 100%;
+    /* Allow native size to prevent blur */
+    width: auto; 
+    height: auto;
+    object-fit: contain; 
     display: block;
 }
 
