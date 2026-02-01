@@ -7,6 +7,7 @@ let templates = [];
 let currentTemplateIndex = 0;
 let currentDayIndex = new Date().getDay() - 1; 
 if (currentDayIndex < 0) currentDayIndex = 6; 
+
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -14,11 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadExerciseDatabase();
     initUI();
     
-    // Fix Header Height for CSS (Calculates actual rendered height)
     setTimeout(() => {
         const header = document.querySelector('.top-bar');
         if (header) {
-            // Set a NEW variable to avoid CSS circular dependency
             document.documentElement.style.setProperty('--actual-header-height', header.offsetHeight + 'px');
         }
     }, 100);
@@ -27,8 +26,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 // --- DATA MANAGEMENT ---
 function loadData() {
     const t = localStorage.getItem('workout_templates');
-    templates = t ? JSON.parse(t) : [{ id: "p1", name: "Default Plan", active: true, schedule: Array(7).fill(null).map(()=>({isRest:false, exercises:[]})) }];
-    if (!t) saveTemplates();
+    if (t) {
+        templates = JSON.parse(t);
+    } else {
+        templates = [{ 
+            id: "p1", 
+            name: "Default Plan", 
+            active: true, 
+            schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) 
+        }];
+        saveTemplates();
+    }
 
     const c = localStorage.getItem('custom_exercises');
     customExercises = c ? JSON.parse(c) : [];
@@ -101,7 +109,12 @@ function renderTemplateTabs() {
 function createNewPlan() {
     const n = prompt("Plan Name:", "New Plan");
     if(!n) return;
-    templates.push({ id: "p"+Date.now(), name: n, active: false, schedule: Array(7).fill(null).map(()=>({isRest:false, exercises:[]})) });
+    templates.push({ 
+        id: "p"+Date.now(), 
+        name: n, 
+        active: false, 
+        schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) 
+    });
     saveTemplates(); currentTemplateIndex = templates.length-1; renderTemplateTabs(); renderDayPlan();
 }
 function renamePlan(i) {
@@ -125,12 +138,31 @@ function renderDaySelector() {
     });
 }
 
-// --- WORKOUT LIST ---
+// --- MAIN WORKOUT LIST ---
 function renderDayPlan() {
-    const h = document.getElementById('current-day-name');
-    if(h) h.textContent = daysOfWeek[currentDayIndex];
+    const currentPlan = templates[currentTemplateIndex].schedule[currentDayIndex];
     
-    const plan = templates[currentTemplateIndex].schedule[currentDayIndex];
+    // Editable Day Name Logic
+    const dayHeaderInput = document.getElementById('day-name-input');
+    if (dayHeaderInput) {
+        dayHeaderInput.value = currentPlan.dayName || daysOfWeek[currentDayIndex];
+        
+        const newInput = dayHeaderInput.cloneNode(true);
+        dayHeaderInput.parentNode.replaceChild(newInput, dayHeaderInput);
+        
+        newInput.addEventListener('change', (e) => {
+            const newVal = e.target.value.trim();
+            if (!newVal || newVal === daysOfWeek[currentDayIndex]) {
+                templates[currentTemplateIndex].schedule[currentDayIndex].dayName = "";
+            } else {
+                templates[currentTemplateIndex].schedule[currentDayIndex].dayName = newVal;
+            }
+            saveTemplates();
+        });
+        
+        newInput.addEventListener('focus', (e) => e.target.select());
+    }
+
     const list = document.getElementById('exercise-list');
     const toggle = document.getElementById('rest-toggle');
     const btn = document.querySelector('.btn-add');
@@ -138,25 +170,25 @@ function renderDayPlan() {
     if (toggle) {
         const n = toggle.cloneNode(true);
         toggle.parentNode.replaceChild(n, toggle);
-        n.checked = plan.isRest;
+        n.checked = currentPlan.isRest;
         n.addEventListener('change', (e) => {
             templates[currentTemplateIndex].schedule[currentDayIndex].isRest = e.target.checked;
             saveTemplates(); renderDayPlan();
         });
     }
 
-    if(btn) btn.style.display = plan.isRest ? 'none' : 'block';
+    if(btn) btn.style.display = currentPlan.isRest ? 'none' : 'block';
     list.innerHTML = '';
 
-    if (plan.isRest) {
+    if (currentPlan.isRest) {
         list.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>Rest Day Active 😴</p></div>`;
         return;
     }
 
-    if (plan.exercises.length === 0) {
+    if (currentPlan.exercises.length === 0) {
         list.innerHTML = `<div style="text-align:center; padding:40px; color:#666;"><p>No exercises planned.</p></div>`;
     } else {
-        plan.exercises.forEach((ex, exIdx) => {
+        currentPlan.exercises.forEach((ex, exIdx) => {
             const card = document.createElement('div');
             card.className = 'exercise-card';
             
@@ -172,7 +204,6 @@ function renderDayPlan() {
                     </div>`;
             });
 
-            // UPDATED: Changed buttons to + and -
             card.innerHTML = `
                 <div class="ex-header">
                     <span class="ex-name">${ex.name}</span>
@@ -213,18 +244,34 @@ function removeEx(i) {
 }
 
 // --- LIBRARY ---
-let currentFilter = 'chest'; // UPDATED: Changed default from 'all' to 'chest'
+// UPDATED: Default is now favorites
+let currentFilter = 'favorites'; 
 
-function openLibrary() { document.getElementById('library-modal').classList.add('active'); filterBodyPart('chest'); }
+function openLibrary() { 
+    document.getElementById('library-modal').classList.add('active'); 
+    // UPDATED: Open directly to favorites
+    filterBodyPart('favorites'); 
+}
+
 function closeLibrary() { document.getElementById('library-modal').classList.remove('active'); }
+
+function showExerciseDetails(name, target, gifUrl) {
+    const modal = document.getElementById('gif-modal');
+    document.getElementById('gif-title').textContent = name;
+    document.getElementById('gif-target').textContent = target;
+    const img = document.getElementById('gif-image');
+    img.src = gifUrl || 'https://via.placeholder.com/300x200?text=No+GIF+Available';
+    modal.classList.add('active');
+}
+
+function closeGifModal() {
+    document.getElementById('gif-modal').classList.remove('active');
+}
 
 function createCustomExercise() {
     const rawName = prompt("Name:"); 
     if(!rawName) return;
-    
-    // UPDATED: Capitalize first letter
     const n = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-    
     const t = prompt("Body Part (chest, back...):");
     const newEx = { id: "c"+Date.now(), name: n, target: "custom", bodyPart: t?t.toLowerCase():"custom", isCustom: true };
     customExercises.push(newEx); saveCustom(); addExToPlan(newEx.id, newEx.name);
@@ -235,7 +282,7 @@ function deleteCustomExercise(id, e) {
     if(confirm("Delete this custom exercise?")) {
         customExercises = customExercises.filter(ex => ex.id !== id);
         saveCustom();
-        renderLibraryList(); // Refresh list
+        renderLibraryList(); 
     }
 }
 
@@ -273,18 +320,24 @@ function renderLibraryList() {
         const isFav = favorites.map(String).includes(String(ex.id));
         const item = document.createElement('div'); item.className='lib-item';
         
-        // UPDATED: Added delete button for custom exercises
         let deleteBtn = '';
         if(ex.isCustom) {
             deleteBtn = `<span class="lib-delete" onclick="deleteCustomExercise('${ex.id}', event)" style="margin-right:10px; color:#ff4444; cursor:pointer;">🗑</span>`;
         }
 
+        const safeName = ex.name.replace(/'/g, "\\'");
+        const safeTarget = ex.target.replace(/'/g, "\\'");
+        const safeGif = ex.gifUrl || '';
+
         item.innerHTML = `
-            <div class="lib-info"><span class="lib-name">${ex.name}</span><div class="lib-meta">${ex.target}</div></div>
+            <div class="lib-info" onclick="showExerciseDetails('${safeName}', '${safeTarget}', '${safeGif}')">
+                <span class="lib-name">${ex.name}</span>
+                <div class="lib-meta">${ex.target}</div>
+            </div>
             <div class="lib-actions">
                 ${deleteBtn}
                 <span class="lib-star ${isFav?'starred':''}" onclick="toggleFav('${ex.id}', this)">★</span>
-                <button class="btn-add-small" onclick="addExToPlan('${ex.id}', '${ex.name.replace(/'/g, "\\'")}')">+</button>
+                <button class="btn-add-small" onclick="addExToPlan('${ex.id}', '${safeName}')">+</button>
             </div>`;
         c.appendChild(item);
     });
