@@ -136,13 +136,40 @@ input:checked + .slider:before { transform: translateX(18px); }
 .btn-add-small { width: 32px; height: 32px; background: #333; color: var(--primary-color); border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* GIF Modal Centering Fix */
-.gif-body { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-.gif-wrapper { 
-    background: #fff; border-radius: 12px; overflow: hidden; 
-    display: flex; align-items: center; justify-content: center; 
-    padding: 10px; width: 100%; max-width: 350px;
+#gif-target {
+    align-self: flex-start;
+    margin-bottom: 20px;
+    cursor: default;
 }
-.gif-wrapper img { width: 100%; height: auto; display: block; object-fit: contain; }
+
+.gif-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.gif-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px; 
+    width: 210px;  
+    height: 210px;
+    margin: 0 auto;
+}
+
+.gif-wrapper img {
+    width: 180px;
+    height: 180px;
+    display: block;
+    object-fit: contain;
+}
+
 
 /* BOTTOM NAV */
 .bottom-nav {
@@ -159,4 +186,14 @@ input:checked + .slider:before { transform: translateX(18px); }
 @media (max-width: 768px) {
     .modal { align-items: flex-end; }
     .modal-content { max-width: 100%; max-height: 92%; border-radius: 24px 24px 0 0; margin: 0; }
+}
+@media (max-width: 350px) {
+    .gif-wrapper {
+        width: 100%;
+        height: auto;
+    }
+    .gif-wrapper img {
+        width: 100%;
+        height: auto;
+    }
 }
