@@ -68,19 +68,18 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .top-bar h1 { font-size: 18px; font-weight: 600; margin: 0; }
 
-/* --- TEMPLATE TABS --- */
 .template-nav {
     position: fixed;
-    top: var(--actual-header-height, 80px);
-    left: 0; width: 100%; height: var(--tab-height);
+    top: var(--header-real-height, 60px); 
+    left: 0; 
+    width: 100%; 
+    height: var(--tab-height);
     background: var(--bg-color);
     z-index: 950;
     border-bottom: 1px solid #333;
-    display: flex; align-items: center;
-    overflow-x: auto; white-space: nowrap;
-    padding: 0 10px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Hide scrollbar Firefox */
+    display: flex; 
+    align-items: center;
+    overflow-x: auto;
 }
 .template-nav::-webkit-scrollbar { display: none; /* Hide scrollbar Chrome/Safari */ }
 
@@ -102,12 +101,12 @@ input[type="number"]::-webkit-inner-spin-button {
 /* --- CONTAINERS --- */
 .container {
     padding: 20px;
-    padding-top: calc(var(--actual-header-height, 80px) + 20px);
+    padding-top: calc(var(--header-real-height, 80px) + 20px);
     max-width: 600px;
     margin: 0 auto;
 }
 .workout-container {
-    padding-top: calc(var(--actual-header-height, 80px) + var(--tab-height) + 20px) !important;
+    padding-top: calc(var(--header-real-height, 80px) + var(--tab-height) + 20px) !important;
 }
 
 /* --- COMPONENTS --- */

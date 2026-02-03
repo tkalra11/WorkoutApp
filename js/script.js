@@ -1,90 +1,59 @@
-// script.js - v5 (Auto-Layout Fix)
-
 async function loadLayout() {
     try {
-        // 1. Load Navbar (Bottom)
-        const navResponse = await fetch('../layout/navbar.html');
-        const navText = await navResponse.text();
-        document.body.insertAdjacentHTML('beforeend', navText);
+        // 1. Fetch both components simultaneously
+        const [navRes, headerRes] = await Promise.all([
+            fetch('../layout/navbar.html'),
+            fetch('../layout/header.html')
+        ]);
 
-        // 2. Load Header (Top)
-        const headerResponse = await fetch('../layout/header.html');
-        const headerText = await headerResponse.text();
+        const navText = await navRes.text();
+        const headerText = await headerRes.text();
+
+        // 2. Inject into DOM
+        document.body.insertAdjacentHTML('beforeend', navText);
         document.body.insertAdjacentHTML('afterbegin', headerText);
 
-        // Trigger the workout page layout fix if that function exists
-        if (typeof fixLayoutPositioning === "function") {
-            fixLayoutPositioning();
-        }
-
-        // 3. Set the Title dynamically
-        updatePageTitle();
-
-        // 4. Highlight active tab
-        highlightActiveTab();
-
-        // 5. NEW: Fix the overlap by measuring the real header height
-        adjustContentPadding();
+        // 3. Use requestAnimationFrame to ensure the browser has painted the elements
+        // before we try to measure their height
+        requestAnimationFrame(() => {
+            adjustContentPadding();
+            updatePageTitle();
+            highlightActiveTab();
+            
+            // Trigger specific workout layout fix if on that page
+            if (typeof renderDayPlan === "function") {
+                const header = document.querySelector('.top-bar');
+                if (header) {
+                    document.documentElement.style.setProperty('--actual-header-height', header.offsetHeight + 'px');
+                }
+            }
+        });
 
     } catch (error) {
         console.error('Error loading layout:', error);
     }
 }
 
-// NEW FUNCTION: Automatically pushes content down
 function adjustContentPadding() {
     const header = document.querySelector('.top-bar');
     const container = document.querySelector('.container');
     
     if (header && container) {
-        // Measure the header's actual height (including the notch area)
         const headerHeight = header.offsetHeight;
-        
-        // Apply that height + 20px of extra space to the container
+        // Use a CSS variable so we can access this height in style.css
+        document.documentElement.style.setProperty('--header-real-height', headerHeight + 'px');
         container.style.paddingTop = (headerHeight + 20) + 'px';
     }
 }
 
-function updatePageTitle() {
-    const path = window.location.pathname.split('/').pop() || 'dashboard.html';
-    const titleElement = document.getElementById('page-title');
-
-    // Default to Dashboard if element not found or path is empty
-    if (!titleElement) return;
-
-    if (path.includes('meals')) {
-        titleElement.textContent = 'Meals';
-    } else if (path.includes('workouts')) {
-        titleElement.textContent = 'Workouts';
-    } else if (path.includes('progress')) {
-        titleElement.textContent = 'Progress';
-    } else {
-        titleElement.textContent = 'Dashboard';
-    }
-}
-
-function highlightActiveTab() {
-    const currentPath = window.location.pathname.split('/').pop() || 'dashboard.html';
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('href') === currentPath) {
-            item.classList.add('active');
-        }
-    });
-}
-
-// Link Breakout Fix
+// BULLETPROOF PWA NAVIGATION: Prevents Safari Breakout
 document.addEventListener('click', function(e) {
-    var target = e.target.closest('a');
-    if (target && target.hostname === window.location.hostname) {
+    const target = e.target.closest('a');
+    if (target && target.getAttribute('href') && target.hostname === window.location.hostname) {
         e.preventDefault(); 
         window.location.href = target.href;
     }
 }, false);
 
-// Run the layout loader
 document.addEventListener('DOMContentLoaded', loadLayout);
-
-// EXTRA SAFETY: Run the adjuster again if the user rotates their phone
 window.addEventListener('resize', adjustContentPadding);
-
