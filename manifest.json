@@ -1,7 +1,7 @@
 {
   "name": "FitnessApp",
   "short_name": "Fitness",
-  "start_url": "index.html",
+  "start_url": "dashboard.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#1E1E24",
@@ -12,4 +12,5 @@
       "type": "image/png"
     }
   ]
+
 }
