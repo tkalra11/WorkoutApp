@@ -1,5 +1,4 @@
 /* css/style.css */
-
 :root {
     --header-height: 60px;
     --tab-height: 50px;
@@ -12,22 +11,16 @@
 
 * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
-
-/* --- SCROLLBAR STYLING --- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
 body {
     background-color: var(--bg-color);
     color: white;
     min-height: 100vh;
-    padding-bottom: calc(60px + var(--safe-bottom));
+    padding-bottom: calc(70px + var(--safe-bottom));
 }
 
 /* --- TOP HEADER --- */
@@ -40,13 +33,11 @@ body {
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #333;
     z-index: 1100;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
+    display: flex; justify-content: center; align-items: flex-end;
 }
 .top-bar h1 { font-size: 18px; font-weight: 600; margin: 0; }
 
-/* --- TEMPLATE TABS --- */
+/* --- TEMPLATE TABS (WORKOUTS PAGE) --- */
 .template-nav {
     position: fixed;
     top: var(--header-real-height, 60px);
@@ -55,9 +46,14 @@ body {
     z-index: 1000;
     border-bottom: 1px solid #333;
     display: flex; align-items: center;
-    overflow-x: auto; white-space: nowrap;
-    padding: 0 10px;
+    overflow-x: auto; white-space: nowrap; padding: 0 10px;
 }
+.template-tab {
+    display: inline-flex; align-items: center; padding: 6px 14px; 
+    margin-right: 8px; background: #333; border-radius: 16px;
+    color: #888; font-size: 13px; cursor: pointer; flex-shrink: 0;
+}
+.template-tab.active { background: var(--primary-color); color: white; }
 
 /* --- CONTAINERS --- */
 .container {
@@ -66,54 +62,7 @@ body {
     margin: 0 auto;
 }
 
-/* --- MODALS (Library Fix) --- */
-.modal {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); z-index: 2000;
-    display: none; align-items: center; justify-content: center; 
-}
-.modal.active { display: flex; }
-
-.modal-content {
-    background: #1E1E24;
-    width: 100%;
-    max-width: 500px;
-    max-height: 85vh; 
-    border-radius: 24px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column; /* Critical for layout */
-    margin: 20px;
-    overflow: hidden; /* Prevents the whole modal from scrolling */
-}
-
-.modal-header, .search-bar, .btn-create-custom {
-    flex-shrink: 0; /* Keeps these at the top */
-}
-
-.filter-chips { 
-    display: flex; gap: 8px; 
-    overflow-x: auto; 
-    padding: 10px 0; 
-    margin-bottom: 5px; 
-    flex-shrink: 0; /* Keeps the chips visible */
-    scrollbar-width: none;
-}
-.filter-chips::-webkit-scrollbar { display: none; }
-
-.library-list { 
-    flex: 1; /* List takes remaining space */
-    overflow-y: auto; /* Only list scrolls */
-    padding-top: 10px;
-    border-top: 1px solid #333;
-}
-
-/* Common Modal components */
-.search-bar { width: 100%; padding: 12px; background: #121212; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 10px; }
-.chip { padding: 8px 16px; background: #333; border-radius: 20px; font-size: 13px; flex-shrink: 0; cursor: pointer; color: #888; }
-.chip.active { background: var(--primary-color); color: white; }
-
-/* Existing Workout Components */
+/* --- CARDS & WORKOUT UI --- */
 .day-selector { display: flex; justify-content: space-between; background: var(--card-bg); padding: 6px; border-radius: 14px; margin-bottom: 20px; }
 .day-bubble { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; color: #888; cursor: pointer; }
 .day-bubble.active { background: var(--primary-color); color: white; font-weight: 700; }
@@ -123,12 +72,43 @@ body {
 .ex-name { font-weight: 600; font-size: 15px; color: white; text-transform: capitalize; }
 .ex-remove { color: #666; font-size: 20px; cursor: pointer; }
 
-.set-row { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; align-items: center; text-align: center; margin-bottom: 8px; }
-.set-row input { background: #121212; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; text-align: center; width: 100%; }
+.set-header { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; text-align: center; margin-bottom: 5px; color: #666; font-size: 10px; text-transform: uppercase; }
+.set-row { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+.set-num { color: #666; font-size: 12px; font-weight: bold; text-align: center;}
+.set-row input { background: #121212; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; text-align: center; width: 100%; font-weight: 600; font-size: 16px; }
 
-.btn-add { width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; border: 1px dashed var(--primary-color); background: rgba(74, 144, 226, 0.1); color: var(--primary-color); margin-top: 20px; }
+.btn-add { width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; border: 1px dashed var(--primary-color); background: rgba(74, 144, 226, 0.1); color: var(--primary-color); margin-top: 20px; }
 
-/* Bottom Nav */
+/* --- MODALS (Library Overlap Fix) --- */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+
+.modal-content {
+    background: #1E1E24; width: 100%; max-width: 500px; max-height: 85vh; 
+    border-radius: 24px; padding: 20px; display: flex; flex-direction: column; 
+    margin: 20px; overflow: hidden;
+}
+
+.modal-header, .search-bar, .btn-create-custom { flex-shrink: 0; }
+.search-bar { width: 100%; padding: 14px; background: #121212; border: 1px solid #333; color: white; border-radius: 12px; margin: 15px 0; }
+.btn-create-custom { width: 100%; padding: 12px; background: #2A2A30; color: var(--primary-color); border: 1px dashed var(--primary-color); border-radius: 10px; font-weight: 600; margin-bottom: 15px; }
+
+.filter-chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; flex-shrink: 0; scrollbar-width: none; }
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip { padding: 8px 16px; background: #333; border-radius: 20px; font-size: 13px; flex-shrink: 0; cursor: pointer; color: #888; }
+.chip.active { background: var(--primary-color); color: white; }
+
+.library-list { flex: 1; overflow-y: auto; }
+.lib-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #2a2a2a; }
+.lib-info { display: flex; flex-direction: column; flex: 1; }
+.lib-name { font-weight: 500; font-size: 15px; text-transform: capitalize; }
+.lib-meta { font-size: 12px; color: #666; margin-top: 4px; }
+.lib-actions { display: flex; align-items: center; gap: 15px; }
+.lib-star { font-size: 20px; color: #444; }
+.lib-star.starred { color: #FFD700; }
+.btn-add-small { width: 32px; height: 32px; background: #333; color: var(--primary-color); border-radius: 50%; border: none; font-size: 20px; }
+
+/* --- BOTTOM NAV --- */
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: var(--card-bg); border-top: 1px solid #333;
@@ -142,5 +122,5 @@ body {
 
 @media (max-width: 768px) {
     .modal { align-items: flex-end; }
-    .modal-content { max-width: 100%; max-height: 90%; border-radius: 24px 24px 0 0; margin: 0; }
+    .modal-content { max-width: 100%; max-height: 92%; border-radius: 24px 24px 0 0; margin: 0; }
 }

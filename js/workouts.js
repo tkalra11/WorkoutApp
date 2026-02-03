@@ -1,19 +1,20 @@
 // js/workouts.js
 
-// workouts.js - Updated Initialization
-
+// workouts.js - Updated Initialization block only
 document.addEventListener('DOMContentLoaded', async () => {
     loadData();
     await loadExerciseDatabase();
     initUI();
     
-    // Safety timeout to ensure layout is measured after content is generated
+    // Safety delay to allow script.js to finish injection
     setTimeout(() => {
         if (typeof adjustContentPadding === "function") {
             adjustContentPadding();
         }
-    }, 200);
+    }, 250);
 });
+
+// ... (Rest of your existing workouts.js code follows here)
 
 // ... (Rest of your existing workouts.js functions: renderDayPlan, addExToPlan, etc.)
 
