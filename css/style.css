@@ -25,7 +25,7 @@ body {
     overflow-x: hidden;
 }
 
-/* --- TOP BAR & TABS --- */
+/* --- HEADER & NAVIGATION --- */
 .top-bar {
     position: fixed; top: 0; left: 0; width: 100%;
     padding-top: max(15px, var(--safe-top)); padding-bottom: 15px;
@@ -36,7 +36,7 @@ body {
 .top-bar h1 { font-size: 18px; font-weight: 600; }
 
 .template-nav {
-    position: fixed; top: var(--header-real-height, 80px); left: 0; width: 100%; height: var(--tab-height);
+    position: fixed; top: var(--header-real-height, 60px); left: 0; width: 100%; height: var(--tab-height);
     background: var(--bg-color); z-index: 1000;
     border-bottom: 1px solid #333; display: flex; align-items: center;
     overflow-x: auto; white-space: nowrap; padding: 0 10px;
@@ -44,15 +44,26 @@ body {
 }
 .template-nav::-webkit-scrollbar { display: none; }
 
-/* --- WORKOUT UI ELEMENTS --- */
+.template-tab {
+    display: inline-flex; align-items: center; padding: 6px 14px; 
+    margin-right: 8px; background: #333; border-radius: 16px;
+    color: #888; font-size: 13px; cursor: pointer; flex-shrink: 0;
+}
+.template-tab.active { background: var(--primary-color); color: white; }
+
+/* --- WORKOUT UI --- */
 .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+.day-selector { display: flex; justify-content: space-between; background: var(--card-bg); padding: 6px; border-radius: 14px; margin-bottom: 20px; }
+.day-bubble { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; color: #888; cursor: pointer; }
+.day-bubble.active { background: var(--primary-color); color: white; font-weight: 700; }
 
 .day-header { 
     display: flex; justify-content: space-between; align-items: center; 
     margin-bottom: 15px; padding: 0 4px;
 }
 
-/* FIX: Day Name Input (Transparent Look) */
+/* Day Name Input Fix (Transparent, no white box) */
 .day-name-input {
     background: transparent; border: none; color: white; 
     font-size: 20px; font-weight: 700; width: 60%; 
@@ -60,7 +71,7 @@ body {
 }
 .day-name-input:focus { outline: none; border-bottom: 1px dashed var(--primary-color); }
 
-/* FIX: Rest Day Toggle Alignment */
+/* Rest Day Toggle Alignment Fix */
 .rest-toggle-wrapper { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #888; }
 .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -69,45 +80,69 @@ body {
 input:checked + .slider { background-color: var(--primary-color); }
 input:checked + .slider:before { transform: translateX(18px); }
 
-/* --- EXERCISE CARDS --- */
-.exercise-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 12px; }
+/* --- CARDS & SETS --- */
+.exercise-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 12px; width: 100%; position: relative;}
 .ex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
 .ex-name { font-weight: 600; font-size: 15px; text-transform: capitalize; }
+.ex-remove { color: #666; font-size: 20px; cursor: pointer; }
 
+.set-header { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; text-align: center; margin-bottom: 5px; color: #666; font-size: 10px; text-transform: uppercase; }
 .set-row { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
-.set-row input { background: #121212; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; }
+.set-num { color: #666; font-size: 12px; font-weight: bold; text-align: center;}
+.set-row input { background: #121212; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; text-align: center; width: 100%; font-weight: 600; font-size: 16px; }
 
-/* FIX: Styled Set Buttons */
+/* Set Action Buttons Styling Fix (+Set and -Set) */
 .set-actions { display: flex; gap: 10px; margin-top: 10px; }
 .btn-set-action {
     background: #333; color: var(--primary-color); border: none; 
     border-radius: 8px; padding: 10px; font-size: 16px; 
-    cursor: pointer; flex: 1; font-weight: bold;
+    cursor: pointer; flex: 1; font-weight: bold; transition: background 0.2s;
 }
+.btn-set-action:hover { background: #444; }
 .btn-set-action.remove { color: #ff4444; }
 
-/* --- MODALS --- */
+.btn-add { width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; border: 1px dashed var(--primary-color); background: rgba(74, 144, 226, 0.1); color: var(--primary-color); margin-top: 20px; }
+
+/* --- MODALS (Library & GIF) --- */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+
 .modal-content {
     background: #1E1E24; width: 100%; max-width: 500px; height: 80vh !important;
     border-radius: 24px; padding: 20px; display: flex; flex-direction: column; overflow: hidden;
 }
 
-/* FIX: Close Button Positioning */
+/* Modal Close Button Positioning Fix */
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
-.close-modal { cursor: pointer; color: #888; font-size: 28px; line-height: 1; }
+.modal-header h3 { font-size: 18px; }
+.close-modal { cursor: pointer; color: #888; font-size: 28px; line-height: 1; padding: 5px; }
 
 .search-bar { width: 100%; padding: 14px; background: #121212; border: 1px solid #333; color: white; border-radius: 12px; margin-bottom: 12px; }
+.btn-create-custom { width: 100%; padding: 12px; background: #2A2A30; color: var(--primary-color); border: 1px dashed var(--primary-color); border-radius: 10px; font-weight: 600; margin-bottom: 15px; flex-shrink: 0; }
+
+.filter-chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; flex-shrink: 0; scrollbar-width: none; }
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip { padding: 8px 16px; background: #333; border-radius: 20px; font-size: 13px; flex-shrink: 0; cursor: pointer; color: #888; }
+.chip.active { background: var(--primary-color); color: white; }
 
 .library-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.lib-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #2a2a2a; }
+.lib-info { display: flex; flex-direction: column; flex: 1; cursor: pointer; }
+.lib-name { font-weight: 500; font-size: 15px; text-transform: capitalize; }
+.lib-meta { font-size: 12px; color: #666; margin-top: 4px; }
+.lib-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
+.lib-star { font-size: 20px; color: #444; }
+.lib-star.starred { color: #FFD700; }
+.btn-add-small { width: 32px; height: 32px; background: #333; color: var(--primary-color); border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* FIX: GIF Centering */
-.gif-body { display: flex; flex-direction: column; align-items: center; width: 100%; }
+/* GIF Modal Centering Fix */
+.gif-body { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
 .gif-wrapper { 
     background: #fff; border-radius: 12px; overflow: hidden; 
     display: flex; align-items: center; justify-content: center; 
-    padding: 10px; width: 100%;
+    padding: 10px; width: 100%; max-width: 350px;
 }
-.gif-wrapper img { max-width: 100%; height: auto; display: block; }
+.gif-wrapper img { width: 100%; height: auto; display: block; object-fit: contain; }
 
 /* BOTTOM NAV */
 .bottom-nav {
@@ -120,3 +155,8 @@ input:checked + .slider:before { transform: translateX(18px); }
 .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #666; font-size: 10px; flex: 1; }
 .nav-item.active { color: var(--primary-color); }
 .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+@media (max-width: 768px) {
+    .modal { align-items: flex-end; }
+    .modal-content { max-width: 100%; max-height: 92%; border-radius: 24px 24px 0 0; margin: 0; }
+}
