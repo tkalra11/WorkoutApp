@@ -34,7 +34,6 @@ function adjustContentPadding() {
         const headerHeight = header.offsetHeight;
         document.documentElement.style.setProperty('--header-real-height', headerHeight + 'px');
         
-        // Dynamic padding for workout page (header + tabs + margin) vs others
         const extraSpace = workoutNav ? 70 : 20; 
         container.style.paddingTop = (headerHeight + extraSpace) + 'px';
     }
