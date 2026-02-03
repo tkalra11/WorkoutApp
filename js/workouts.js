@@ -1,5 +1,22 @@
 // js/workouts.js
 
+// workouts.js - Updated Initialization
+
+document.addEventListener('DOMContentLoaded', async () => {
+    loadData();
+    await loadExerciseDatabase();
+    initUI();
+    
+    // Safety timeout to ensure layout is measured after content is generated
+    setTimeout(() => {
+        if (typeof adjustContentPadding === "function") {
+            adjustContentPadding();
+        }
+    }, 200);
+});
+
+// ... (Rest of your existing workouts.js functions: renderDayPlan, addExToPlan, etc.)
+
 let exercisesDB = {};
 let customExercises = [];
 let favorites = [];
