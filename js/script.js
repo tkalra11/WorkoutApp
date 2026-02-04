@@ -1,10 +1,18 @@
-// script.js - Final Combined Fixes
 async function loadLayout() {
     try {
+        // Detect if we are at the root or in a subfolder to set the correct path prefix
+        const isRoot = window.location.pathname.endsWith('index.html') || 
+                       window.location.pathname.endsWith('/') || 
+                       !window.location.pathname.includes('/pages/');
+        
+        const prefix = isRoot ? '' : '../';
+        
         const [navRes, headerRes] = await Promise.all([
-            fetch('../layout/navbar.html'),
-            fetch('../layout/header.html')
+            fetch(`${prefix}layout/navbar.html`),
+            fetch(`${prefix}layout/header.html`)
         ]);
+
+        if (!navRes.ok || !headerRes.ok) throw new Error("Layout files not found");
 
         const navText = await navRes.text();
         const headerText = await headerRes.text();
@@ -12,7 +20,6 @@ async function loadLayout() {
         document.body.insertAdjacentHTML('afterbegin', headerText);
         document.body.insertAdjacentHTML('beforeend', navText);
 
-        // Run immediately after injection
         updatePageTitle();
         highlightActiveTab();
         
@@ -24,7 +31,6 @@ async function loadLayout() {
         console.error('Layout failed:', error);
     }
 }
-
 function adjustContentPadding() {
     const header = document.querySelector('.top-bar');
     const container = document.querySelector('.container');
