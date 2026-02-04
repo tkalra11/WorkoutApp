@@ -1,17 +1,18 @@
 async function loadLayout() {
     try {
-        // Find the base path dynamically (e.g., /WorkoutApp/)
+        // 1. Identify your repository name dynamically
+        // GitHub Pages format: https://username.github.io/RepoName/
         const pathParts = window.location.pathname.split('/');
-        const repoName = pathParts[1]; 
-        const baseUrl = `/${repoName}/`;
+        const repoName = pathParts[1]; // This grabs "WorkoutApp" from the URL
+        const baseUrl = `${window.location.origin}/${repoName}/`;
 
-        // Always fetch from the root-level layout folder
+        // 2. Always fetch layouts relative to the Repository Root
         const [navRes, headerRes] = await Promise.all([
             fetch(`${baseUrl}layout/navbar.html`),
             fetch(`${baseUrl}layout/header.html`)
         ]);
 
-        if (!navRes.ok || !headerRes.ok) throw new Error("Layout components 404");
+        if (!navRes.ok || !headerRes.ok) throw new Error("Layout components failed to load");
 
         const navText = await navRes.text();
         const headerText = await headerRes.text();
@@ -19,13 +20,16 @@ async function loadLayout() {
         document.body.insertAdjacentHTML('afterbegin', headerText);
         document.body.insertAdjacentHTML('beforeend', navText);
 
-        updatePageTitle();
-        highlightActiveTab();
+        // Ensure these functions exist before calling
+        if (typeof updatePageTitle === "function") updatePageTitle();
+        if (typeof highlightActiveTab === "function") highlightActiveTab();
         
-        requestAnimationFrame(() => adjustContentPadding());
+        requestAnimationFrame(() => {
+            if (typeof adjustContentPadding === "function") adjustContentPadding();
+        });
 
     } catch (error) {
-        console.error('Layout Error:', error);
+        console.error('PWA Layout Error:', error);
     }
 }
 
