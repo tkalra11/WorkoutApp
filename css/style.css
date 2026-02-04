@@ -193,30 +193,51 @@ input:checked + .slider:before { transform: translateX(18px); }
     cursor: default;
 }
 
+#gif-modal .modal-content {
+    /* Wasted space fix: Auto height and narrower max-width */
+    height: auto !important; 
+    max-width: 400px;
+    width: 90%;
+    padding: 20px;
+    margin: auto; /* Centers on desktop */
+}
+
+@media (max-width: 768px) {
+    #gif-modal {
+        display: flex;
+        align-items: center; /* Centers vertically on mobile instead of sticking to bottom */
+        justify-content: center;
+    }
+    
+    #gif-modal .modal-content {
+        max-height: 80vh;
+        border-radius: 24px; /* Keep rounded corners on mobile */
+        margin-bottom: 0;
+    }
+}
+
 .gif-body {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Consistent spacing between title, chip, and image */
+}
+
+.gif-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    padding: 10px;
+    display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
 }
 
-.gif-wrapper {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px; 
-    width: 210px;  
-    height: 210px;
-    margin: 0 auto;
-}
-
 .gif-wrapper img {
-    width: 180px;
-    height: 180px;
+    /* Resolution fix: prevents blurry upscaling */
+    width: 100%;
+    height: auto;
+    max-width: 300px; /* Limits size to prevent pixelation */
     display: block;
     object-fit: contain;
 }
