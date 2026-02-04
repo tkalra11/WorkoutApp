@@ -187,61 +187,65 @@ input:checked + .slider:before { transform: translateX(18px); }
 .btn-add-small { width: 32px; height: 32px; background: #333; color: var(--primary-color); border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* GIF Modal Centering Fix */
-#gif-target {
-    align-self: flex-start;
-    margin-bottom: 20px;
-    cursor: default;
-}
+/* --- GIF MODAL SPECIFIC FIXES --- */
 
-#gif-modal .modal-content {
-    /* Wasted space fix: Auto height and narrower max-width */
-    height: auto !important; 
-    max-width: 400px;
-    width: 90%;
-    padding: 20px;
-    margin: auto; /* Centers on desktop */
-}
-
+/* 1. Force the GIF modal to center on mobile and ignore 'flex-end' */
 @media (max-width: 768px) {
     #gif-modal {
-        display: flex;
-        align-items: center; /* Centers vertically on mobile instead of sticking to bottom */
-        justify-content: center;
+        display: none; /* Default hidden */
+        align-items: center !important; 
+        justify-content: center !important;
     }
-    
-    #gif-modal .modal-content {
-        max-height: 80vh;
-        border-radius: 24px; /* Keep rounded corners on mobile */
-        margin-bottom: 0;
+    #gif-modal.active {
+        display: flex !important;
     }
 }
 
-.gif-body {
+/* 2. Remove wasted space by overriding the general 80vh height */
+#gif-modal .modal-content {
+    height: auto !important; 
+    width: auto !important;
+    max-width: 90vw;
+    padding: 20px;
+    border-radius: 24px;
+    margin: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px; /* Consistent spacing between title, chip, and image */
 }
 
+/* 3. Spacing between Title, Muscle Chip, and GIF */
+#gif-modal .modal-header {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+#gif-target {
+    margin-bottom: 20px !important;
+    text-transform: capitalize;
+}
+
+/* 4. The GIF Wrapper & Resolution Lock */
 .gif-wrapper {
     background: #fff;
-    border-radius: 16px;
-    padding: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    padding: 10px;
+    /* Wrapper fits the 180px GIF + padding */
+    width: 200px; 
+    height: 200px;
+    flex-shrink: 0;
 }
 
 .gif-wrapper img {
-    /* Resolution fix: prevents blurry upscaling */
-    width: 100%;
-    height: auto;
-    max-width: 300px; /* Limits size to prevent pixelation */
+    /* STRICT 180x180: No upscaling, no blur */
+    width: 180px !important;
+    height: 180px !important;
     display: block;
     object-fit: contain;
 }
-
 
 /* BOTTOM NAV */
 .bottom-nav {
