@@ -51,6 +51,44 @@ body {
 }
 .template-tab.active { background: var(--primary-color); color: white; }
 
+/* --- PLAN SELECTOR SPACING & SEPARATING BAR --- */
+.tab-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between edit and delete icons */
+    margin-left: 10px; /* Space before the bar */
+    padding-left: 10px; /* Space after the bar */
+    border-left: 1px solid rgba(255, 255, 255, 0.2); /* The vertical separating bar */
+}
+
+.tab-controls span {
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.tab-controls span:hover {
+    opacity: 0.7;
+}
+
+/* Ensure the tab expands to fit the controls */
+.template-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    margin-right: 8px;
+    background: #333;
+    border-radius: 16px;
+    color: #888;
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
 /* --- WORKOUT UI --- */
 .container { padding: 20px; max-width: 600px; margin: 0 auto; }
 

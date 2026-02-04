@@ -14,10 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 250);
 });
 
-// ... (Rest of your existing workouts.js code follows here)
-
-// ... (Rest of your existing workouts.js functions: renderDayPlan, addExToPlan, etc.)
-
 let exercisesDB = {};
 let customExercises = [];
 let favorites = [];
@@ -297,12 +293,26 @@ function closeGifModal() {
 }
 
 function createCustomExercise() {
-    const rawName = prompt("Name:"); 
-    if(!rawName) return;
+    const rawName = prompt("Exercise Name:");
+    if (!rawName) return;
+
+    const bodyParts = ['chest', 'back', 'shoulders', 'arms', 'legs', 'abs', 'cardio'];
+    const choice = prompt(`Select Body Part (Type the number):\n${bodyParts.map((p, i) => `${i + 1}. ${p}`).join('\n')}`);
+    
+    const selectedPart = bodyParts[parseInt(choice) - 1] || 'custom';
     const n = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-    const t = prompt("Body Part (chest, back...):");
-    const newEx = { id: "c"+Date.now(), name: n, target: "custom", bodyPart: t?t.toLowerCase():"custom", isCustom: true };
-    customExercises.push(newEx); saveCustom(); addExToPlan(newEx.id, newEx.name);
+    
+    const newEx = { 
+        id: "c" + Date.now(), 
+        name: n, 
+        target: selectedPart, 
+        bodyPart: selectedPart, 
+        isCustom: true 
+    };
+    
+    customExercises.push(newEx); 
+    saveCustom(); 
+    addExToPlan(newEx.id, newEx.name);
 }
 
 function deleteCustomExercise(id, e) {
@@ -356,11 +366,12 @@ function renderLibraryList() {
         const safeName = ex.name.replace(/'/g, "\\'");
         const safeTarget = ex.target.replace(/'/g, "\\'");
         const safeGif = ex.gifUrl || '';
+        const capitalizedTarget = ex.target.charAt(0).toUpperCase() + ex.target.slice(1);
 
         item.innerHTML = `
             <div class="lib-info" onclick="showExerciseDetails('${safeName}', '${safeTarget}', '${safeGif}')">
                 <span class="lib-name">${ex.name}</span>
-                <div class="lib-meta">${ex.target}</div>
+                <div class="lib-meta">${capitalizedTarget}</div>
             </div>
             <div class="lib-actions">
                 ${deleteBtn}
