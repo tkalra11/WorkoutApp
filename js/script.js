@@ -1,18 +1,19 @@
 async function loadLayout() {
     try {
-        // Detect if we are at the root or in a subfolder to set the correct path prefix
-        const isRoot = window.location.pathname.endsWith('index.html') || 
-                       window.location.pathname.endsWith('/') || 
-                       !window.location.pathname.includes('/pages/');
+        // Detect the repository name from the URL (e.g., /WorkoutApp/)
+        const pathParts = window.location.pathname.split('/');
+        const repoName = pathParts[1]; // Usually the second part in GitHub Pages URLs
         
-        const prefix = isRoot ? '' : '../';
-        
+        // Determine if we are in the root or in /pages/
+        const isInPages = window.location.pathname.includes('/pages/');
+        const prefix = isInPages ? '../' : '';
+
         const [navRes, headerRes] = await Promise.all([
             fetch(`${prefix}layout/navbar.html`),
             fetch(`${prefix}layout/header.html`)
         ]);
 
-        if (!navRes.ok || !headerRes.ok) throw new Error("Layout files not found");
+        if (!navRes.ok || !headerRes.ok) throw new Error("Layout not found");
 
         const navText = await navRes.text();
         const headerText = await headerRes.text();
@@ -23,14 +24,13 @@ async function loadLayout() {
         updatePageTitle();
         highlightActiveTab();
         
-        requestAnimationFrame(() => {
-            adjustContentPadding();
-        });
+        requestAnimationFrame(() => adjustContentPadding());
 
     } catch (error) {
         console.error('Layout failed:', error);
     }
 }
+
 function adjustContentPadding() {
     const header = document.querySelector('.top-bar');
     const container = document.querySelector('.container');
