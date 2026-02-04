@@ -1,19 +1,17 @@
 async function loadLayout() {
     try {
-        // Detect the repository name from the URL (e.g., /WorkoutApp/)
+        // Find the base path dynamically (e.g., /WorkoutApp/)
         const pathParts = window.location.pathname.split('/');
-        const repoName = pathParts[1]; // Usually the second part in GitHub Pages URLs
-        
-        // Determine if we are in the root or in /pages/
-        const isInPages = window.location.pathname.includes('/pages/');
-        const prefix = isInPages ? '../' : '';
+        const repoName = pathParts[1]; 
+        const baseUrl = `/${repoName}/`;
 
+        // Always fetch from the root-level layout folder
         const [navRes, headerRes] = await Promise.all([
-            fetch(`${prefix}layout/navbar.html`),
-            fetch(`${prefix}layout/header.html`)
+            fetch(`${baseUrl}layout/navbar.html`),
+            fetch(`${baseUrl}layout/header.html`)
         ]);
 
-        if (!navRes.ok || !headerRes.ok) throw new Error("Layout not found");
+        if (!navRes.ok || !headerRes.ok) throw new Error("Layout components 404");
 
         const navText = await navRes.text();
         const headerText = await headerRes.text();
@@ -27,7 +25,7 @@ async function loadLayout() {
         requestAnimationFrame(() => adjustContentPadding());
 
     } catch (error) {
-        console.error('Layout failed:', error);
+        console.error('Layout Error:', error);
     }
 }
 
