@@ -293,27 +293,77 @@ function closeGifModal() {
 }
 
 function createCustomExercise() {
-    const rawName = prompt("Exercise Name:");
-    if (!rawName) return;
-
-    const bodyParts = ['chest', 'back', 'shoulders', 'arms', 'legs', 'abs', 'cardio'];
-    const choice = prompt(`Select Body Part (Type the number):\n${bodyParts.map((p, i) => `${i + 1}. ${p}`).join('\n')}`);
+    // 1. Define categories
+    const categories = ['chest', 'back', 'shoulders', 'arms', 'legs', 'abs', 'cardio'];
     
-    const selectedPart = bodyParts[parseInt(choice) - 1] || 'custom';
+    // 2. Create the unified form HTML
+    let formHtml = `
+        <div id="custom-ex-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter: blur(5px);">
+            <div style="background:#1E1E24; padding:24px; border-radius:24px; width:100%; max-width:400px; border: 1px solid #333; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <h3 style="margin-bottom:20px; text-align:center; font-size:20px;">Create Custom Exercise</h3>
+                
+                <label style="display:block; color:#888; font-size:12px; margin-bottom:8px; text-transform:uppercase; font-weight:bold;">Exercise Name</label>
+                <input type="text" id="custom-ex-name" placeholder="e.g. Diamond Pushups" 
+                    style="width:100%; padding:14px; background:#121212; border:1px solid #333; color:white; border-radius:12px; margin-bottom:20px; font-size:16px; outline:none;">
+
+                <label style="display:block; color:#888; font-size:12px; margin-bottom:8px; text-transform:uppercase; font-weight:bold;">Muscle Group</label>
+                <select id="custom-ex-category" 
+                    style="width:100%; padding:14px; background:#121212; border:1px solid #333; color:white; border-radius:12px; margin-bottom:24px; font-size:16px; appearance:none; outline:none;">
+                    ${categories.map(cat => `
+                        <option value="${cat}">${cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                    `).join('')}
+                </select>
+
+                <div style="display:flex; gap:12px;">
+                    <button onclick="document.getElementById('custom-ex-modal').remove()" 
+                        style="flex:1; padding:14px; background:transparent; color:#ff4444; border:none; font-weight:600; cursor:pointer;">
+                        Cancel
+                    </button>
+                    <button onclick="submitCustomExercise()" 
+                        style="flex:2; padding:14px; background:var(--primary-color); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+                        Add Exercise
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', formHtml);
+    
+    // Auto-focus the input for better UX
+    setTimeout(() => document.getElementById('custom-ex-name').focus(), 100);
+}
+
+// Logic to process the form data
+window.submitCustomExercise = function() {
+    const nameInput = document.getElementById('custom-ex-name');
+    const categorySelect = document.getElementById('custom-ex-category');
+    
+    const rawName = nameInput.value.trim();
+    const selectedCategory = categorySelect.value;
+
+    if (!rawName) {
+        nameInput.style.borderColor = '#ff4444';
+        return;
+    }
+
     const n = rawName.charAt(0).toUpperCase() + rawName.slice(1);
     
     const newEx = { 
         id: "c" + Date.now(), 
         name: n, 
-        target: selectedPart, 
-        bodyPart: selectedPart, 
+        target: selectedCategory, 
+        bodyPart: selectedCategory, 
         isCustom: true 
     };
     
     customExercises.push(newEx); 
     saveCustom(); 
     addExToPlan(newEx.id, newEx.name);
-}
+    
+    // Close modal
+    document.getElementById('custom-ex-modal').remove();
+};
 
 function deleteCustomExercise(id, e) {
     e.stopPropagation();
