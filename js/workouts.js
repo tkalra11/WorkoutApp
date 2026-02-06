@@ -10,34 +10,27 @@ let currentDayIndex = new Date().getDay() - 1;
 if (currentDayIndex < 0) currentDayIndex = 6; 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initial Local Load (Instant)
-    loadData(); 
-    await loadExerciseDatabase();
-    
-    // 2. Initial UI setup (using local cache)
-    initUI();
+// workouts.js - Top of file
 
-    // 3. LISTEN FOR FIREBASE LOGIN
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Initial local load so the screen isn't totally empty while waiting for Firebase
+    loadDataLocal(); 
+    await loadExerciseDatabase();
+    initUI(); // Initial render with local data
+
+    // 2. React to Firebase Login
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            console.log("Firebase User detected. Syncing UI...");
-            // CRITICAL: We MUST await loadData here so templates is populated 
-            // before we try to render the UI again.
-            await loadData(); 
-            
-            // RE-INITIALIZE everything with the fresh cloud data
-            initUI(); 
-            
-            // Re-apply layout fixes
-            applyLayoutFixes();
+            console.log("Authenticated: Fetching cloud data...");
+            await loadDataCloud(user.uid);
+            initUI(); // Re-render with fresh cloud data
         } else {
-            console.log("No user logged in. Using local cache.");
+            console.log("Not authenticated: Using local data.");
         }
     });
+    setTimeout(applyLayoutFixes, 150);
 });
 
-// Helper to keep code clean
 function applyLayoutFixes() {
     const header = document.querySelector('.top-bar');
     if (header) {
@@ -78,36 +71,40 @@ async function saveFavorites() {
     await syncToCloud();
 }
 
-async function loadData() {
-    // A. Load from LocalStorage Cache first (Instant UI)
+function loadDataLocal() {
     const t = localStorage.getItem('workout_templates');
     const c = localStorage.getItem('custom_exercises');
     const f = localStorage.getItem('exercise_favorites');
 
     if (t) templates = JSON.parse(t);
     else {
-        templates = [{ 
-            id: "p1", name: "Default Plan", active: true, 
-            schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) 
-        }];
-        saveTemplates();
+        // Create default if completely new
+        templates = [{ id: "p1", name: "Default Plan", active: true, 
+                       schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) }];
     }
     customExercises = c ? JSON.parse(c) : [];
     favorites = f ? JSON.parse(f) : [];
+}
 
-    // B. Check Cloud for updates (Sync back to device)
-    if (auth.currentUser) {
-        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+// Load from Firebase (Cloud Sync)
+async function loadDataCloud(uid) {
+    try {
+        const userDoc = await getDoc(doc(db, "users", uid));
         if (userDoc.exists()) {
-            const cloudData = userDoc.data();
-            // Assign cloud data to global variables
-            templates = cloudData.workout_templates || templates;
-            customExercises = cloudData.custom_exercises || customExercises;
-            favorites = cloudData.exercise_favorites || favorites;
+            const cloud = userDoc.data();
             
-            // Important: update local cache so it's ready for the next offline use
+            // Overwrite global variables with cloud data
+            templates = cloud.workout_templates || templates;
+            customExercises = cloud.custom_exercises || customExercises;
+            favorites = cloud.exercise_favorites || favorites;
+
+            // Sync back to local storage so the cache stays fresh
             localStorage.setItem('workout_templates', JSON.stringify(templates));
+            localStorage.setItem('custom_exercises', JSON.stringify(customExercises));
+            localStorage.setItem('exercise_favorites', JSON.stringify(favorites));
         }
+    } catch (error) {
+        console.error("Cloud load failed:", error);
     }
 }
 
