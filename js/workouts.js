@@ -11,18 +11,39 @@ if (currentDayIndex < 0) currentDayIndex = 6;
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadData(); // Load data before initializing UI
+    // 1. Initial Local Load (Instant)
+    loadData(); 
     await loadExerciseDatabase();
-    initUI();
     
-    setTimeout(() => {
-        const header = document.querySelector('.top-bar');
-        if (header) {
-            document.documentElement.style.setProperty('--actual-header-height', header.offsetHeight + 'px');
-            if (typeof adjustContentPadding === "function") adjustContentPadding();
+    // 2. Initial UI setup (using local cache)
+    initUI();
+
+    // 3. LISTEN FOR FIREBASE LOGIN
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log("Firebase User detected. Syncing UI...");
+            // CRITICAL: We MUST await loadData here so templates is populated 
+            // before we try to render the UI again.
+            await loadData(); 
+            
+            // RE-INITIALIZE everything with the fresh cloud data
+            initUI(); 
+            
+            // Re-apply layout fixes
+            applyLayoutFixes();
+        } else {
+            console.log("No user logged in. Using local cache.");
         }
-    }, 250);
+    });
 });
+
+// Helper to keep code clean
+function applyLayoutFixes() {
+    const header = document.querySelector('.top-bar');
+    if (header) {
+        document.documentElement.style.setProperty('--actual-header-height', header.offsetHeight + 'px');
+    }
+}
 
 // --- DATA MANAGEMENT ---
 async function syncToCloud() {
@@ -76,22 +97,16 @@ async function loadData() {
 
     // B. Check Cloud for updates (Sync back to device)
     if (auth.currentUser) {
-        const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
         const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        
         if (userDoc.exists()) {
-            const cloud = userDoc.data();
-            templates = cloud.workout_templates || templates;
-            customExercises = cloud.custom_exercises || customExercises;
-            favorites = cloud.exercise_favorites || favorites;
+            const cloudData = userDoc.data();
+            // Assign cloud data to global variables
+            templates = cloudData.workout_templates || templates;
+            customExercises = cloudData.custom_exercises || customExercises;
+            favorites = cloudData.exercise_favorites || favorites;
             
-            // Update cache with cloud data
+            // Important: update local cache so it's ready for the next offline use
             localStorage.setItem('workout_templates', JSON.stringify(templates));
-            localStorage.setItem('custom_exercises', JSON.stringify(customExercises));
-            localStorage.setItem('exercise_favorites', JSON.stringify(favorites));
-            
-            renderTemplateTabs();
-            renderDayPlan();
         }
     }
 }
