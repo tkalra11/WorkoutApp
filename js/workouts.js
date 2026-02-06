@@ -488,3 +488,14 @@ function addExToPlan(id, name) {
     templates[currentTemplateIndex].schedule[currentDayIndex].exercises.push(newEx);
     saveTemplates(); closeLibrary(); renderDayPlan();
 }
+
+window.addSet = addSet;
+window.removeSet = removeSet;
+window.removeEx = removeEx;
+window.updateSet = updateSet;
+window.toggleFav = toggleFav;
+window.addExToPlan = addExToPlan;
+window.openLibrary = openLibrary;
+window.closeLibrary = closeLibrary;
+window.filterBodyPart = filterBodyPart;
+window.createNewPlan = createNewPlan;
