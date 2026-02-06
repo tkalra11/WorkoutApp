@@ -1,18 +1,5 @@
-// js/workouts.js
-
-// workouts.js - Updated Initialization block only
-document.addEventListener('DOMContentLoaded', async () => {
-    loadData();
-    await loadExerciseDatabase();
-    initUI();
-    
-    // Safety delay to allow script.js to finish injection
-    setTimeout(() => {
-        if (typeof adjustContentPadding === "function") {
-            adjustContentPadding();
-        }
-    }, 250);
-});
+import { auth, db } from "./firebase-config.js";
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 let exercisesDB = {};
 let customExercises = [];
@@ -21,11 +8,10 @@ let templates = [];
 let currentTemplateIndex = 0;
 let currentDayIndex = new Date().getDay() - 1; 
 if (currentDayIndex < 0) currentDayIndex = 6; 
-
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    loadData();
+    await loadData(); // Load data before initializing UI
     await loadExerciseDatabase();
     initUI();
     
@@ -33,35 +19,82 @@ document.addEventListener('DOMContentLoaded', async () => {
         const header = document.querySelector('.top-bar');
         if (header) {
             document.documentElement.style.setProperty('--actual-header-height', header.offsetHeight + 'px');
+            if (typeof adjustContentPadding === "function") adjustContentPadding();
         }
-    }, 100);
+    }, 250);
 });
 
 // --- DATA MANAGEMENT ---
-function loadData() {
+async function syncToCloud() {
+    if (auth.currentUser) {
+        try {
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            await updateDoc(userRef, {
+                workout_templates: templates,
+                custom_exercises: customExercises,
+                exercise_favorites: favorites,
+                lastSynced: new Date().toISOString()
+            });
+            console.log("Cloud sync successful");
+        } catch (error) {
+            console.error("Cloud sync failed (saved locally):", error);
+        }
+    }
+}
+
+async function saveTemplates() {
+    localStorage.setItem('workout_templates', JSON.stringify(templates));
+    await syncToCloud();
+}
+
+async function saveCustom() { 
+    localStorage.setItem('custom_exercises', JSON.stringify(customExercises)); 
+    await syncToCloud();
+}
+
+async function saveFavorites() { 
+    localStorage.setItem('exercise_favorites', JSON.stringify(favorites)); 
+    await syncToCloud();
+}
+
+async function loadData() {
+    // A. Load from LocalStorage Cache first (Instant UI)
     const t = localStorage.getItem('workout_templates');
-    if (t) {
-        templates = JSON.parse(t);
-    } else {
+    const c = localStorage.getItem('custom_exercises');
+    const f = localStorage.getItem('exercise_favorites');
+
+    if (t) templates = JSON.parse(t);
+    else {
         templates = [{ 
-            id: "p1", 
-            name: "Default Plan", 
-            active: true, 
+            id: "p1", name: "Default Plan", active: true, 
             schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) 
         }];
         saveTemplates();
     }
-
-    const c = localStorage.getItem('custom_exercises');
     customExercises = c ? JSON.parse(c) : [];
-
-    const f = localStorage.getItem('exercise_favorites');
     favorites = f ? JSON.parse(f) : [];
-}
 
-function saveTemplates() { localStorage.setItem('workout_templates', JSON.stringify(templates)); }
-function saveCustom() { localStorage.setItem('custom_exercises', JSON.stringify(customExercises)); }
-function saveFavorites() { localStorage.setItem('exercise_favorites', JSON.stringify(favorites)); }
+    // B. Check Cloud for updates (Sync back to device)
+    if (auth.currentUser) {
+        const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+        
+        if (userDoc.exists()) {
+            const cloud = userDoc.data();
+            templates = cloud.workout_templates || templates;
+            customExercises = cloud.custom_exercises || customExercises;
+            favorites = cloud.exercise_favorites || favorites;
+            
+            // Update cache with cloud data
+            localStorage.setItem('workout_templates', JSON.stringify(templates));
+            localStorage.setItem('custom_exercises', JSON.stringify(customExercises));
+            localStorage.setItem('exercise_favorites', JSON.stringify(favorites));
+            
+            renderTemplateTabs();
+            renderDayPlan();
+        }
+    }
+}
 
 async function loadExerciseDatabase() {
     try {
