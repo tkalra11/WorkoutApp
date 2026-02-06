@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">   
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  
+    <meta name="apple-mobile-web-app-title" content="FitnessApp">
+    <title>My App</title>
+    <link rel="stylesheet" href="../css/style.css">   
+    <script src="../js/script.js" defer></script>
+    <script src="../js/firebase-config.js" type="module"></script>
+    <script src="../js/auth.js" type="module"></script>
+</head>
+
+<body>
+<div class="container profile-container">
+    <div class="exercise-card" id="auth-section">
+        <div class="ex-header">
+            <span class="ex-name">Cloud Sync</span>
+        </div>
+        <div id="user-info" style="padding: 10px 0;">
+            <p id="auth-status" style="color: #888; font-size: 14px;">Not signed in. Data is local-only.</p>
+        </div>
+        <button id="login-btn" class="btn-add" style="margin-top: 10px;">Sign In / Sign Up</button>
+    </div>
+
+    <div class="exercise-card">
+        <div class="ex-header">
+            <span class="ex-name">Progress Summary</span>
+        </div>
+        <div class="set-header"><span>Goal</span><span>Current</span><span>Target</span></div>
+        <div class="set-row">
+            <span class="set-num">1</span>
+            <div style="text-align:center">Workouts</div>
+            <div style="text-align:center">--</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

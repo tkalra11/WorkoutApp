@@ -1,0 +1,275 @@
+/* css/style.css - RESTORED DESIGN + FUNCTIONAL FIXES */
+
+:root {
+    --header-height: 60px;
+    --tab-height: 50px;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --primary-color: #4A90E2;
+    --bg-color: #121212;
+    --card-bg: #1E1E24;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: white;
+    min-height: 100vh;
+    padding-bottom: calc(70px + var(--safe-bottom));
+    overflow-x: hidden;
+}
+
+/* --- HEADER & NAVIGATION --- */
+.top-bar {
+    position: fixed; top: 0; left: 0; width: 100%;
+    padding-top: max(15px, var(--safe-top)); padding-bottom: 15px;
+    background-color: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px);
+    border-bottom: 1px solid #333; z-index: 1100;
+    display: flex; justify-content: center; align-items: flex-end;
+}
+.top-bar h1 { font-size: 18px; font-weight: 600; }
+
+.template-nav {
+    position: fixed; top: var(--header-real-height, 60px); left: 0; width: 100%; height: var(--tab-height);
+    background: var(--bg-color); z-index: 1000;
+    border-bottom: 1px solid #333; display: flex; align-items: center;
+    overflow-x: auto; white-space: nowrap; padding: 0 10px;
+    scrollbar-width: none;
+}
+.template-nav::-webkit-scrollbar { display: none; }
+
+.template-tab {
+    display: inline-flex; align-items: center; padding: 6px 14px; 
+    margin-right: 8px; background: #333; border-radius: 16px;
+    color: #888; font-size: 13px; cursor: pointer; flex-shrink: 0;
+}
+.template-tab.active { background: var(--primary-color); color: white; }
+
+/* --- PLAN SELECTOR SPACING & SEPARATING BAR --- */
+.tab-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between edit and delete icons */
+    margin-left: 10px; /* Space before the bar */
+    padding-left: 10px; /* Space after the bar */
+    border-left: 1px solid rgba(255, 255, 255, 0.2); /* The vertical separating bar */
+}
+
+.tab-controls span {
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.tab-controls span:hover {
+    opacity: 0.7;
+}
+
+/* Ensure the tab expands to fit the controls */
+.template-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    margin-right: 8px;
+    background: #333;
+    border-radius: 16px;
+    color: #888;
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+/* --- WORKOUT UI --- */
+.container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+.day-selector { display: flex; justify-content: space-between; background: var(--card-bg); padding: 6px; border-radius: 14px; margin-bottom: 20px; }
+.day-bubble { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; color: #888; cursor: pointer; }
+.day-bubble.active { background: var(--primary-color); color: white; font-weight: 700; }
+
+.day-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 15px; padding: 0 4px;
+}
+
+
+/* Custom Form Styling */
+#custom-ex-category {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+#custom-ex-name:focus {
+    border-color: var(--primary-color) !important;
+}
+
+/* Day Name Input Fix (Transparent, no white box) */
+.day-name-input {
+    background: transparent; border: none; color: white; 
+    font-size: 20px; font-weight: 700; width: 60%; 
+    border-bottom: 1px dashed transparent; transition: 0.2s;
+}
+.day-name-input:focus { outline: none; border-bottom: 1px dashed var(--primary-color); }
+
+/* Rest Day Toggle Alignment Fix */
+.rest-toggle-wrapper { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #888; }
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(18px); }
+
+/* --- CARDS & SETS --- */
+.exercise-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 12px; width: 100%; position: relative;}
+.ex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+.ex-name { font-weight: 600; font-size: 15px; text-transform: capitalize; }
+.ex-remove { color: #666; font-size: 20px; cursor: pointer; }
+
+.set-header { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; text-align: center; margin-bottom: 5px; color: #666; font-size: 10px; text-transform: uppercase; }
+.set-row { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+.set-num { color: #666; font-size: 12px; font-weight: bold; text-align: center;}
+.set-row input { background: #121212; border: 1px solid #333; color: white; padding: 12px; border-radius: 8px; text-align: center; width: 100%; font-weight: 600; font-size: 16px; }
+
+/* Set Action Buttons Styling Fix (+Set and -Set) */
+.set-actions { display: flex; gap: 10px; margin-top: 10px; }
+.btn-set-action {
+    background: #333; color: var(--primary-color); border: none; 
+    border-radius: 8px; padding: 10px; font-size: 16px; 
+    cursor: pointer; flex: 1; font-weight: bold; transition: background 0.2s;
+}
+.btn-set-action:hover { background: #444; }
+.btn-set-action.remove { color: #ff4444; }
+
+.btn-add { width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; border: 1px dashed var(--primary-color); background: rgba(74, 144, 226, 0.1); color: var(--primary-color); margin-top: 20px; }
+
+/* --- MODALS (Library & GIF) --- */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+
+.modal-content {
+    background: #1E1E24; width: 100%; max-width: 500px; height: 80vh !important;
+    border-radius: 24px; padding: 20px; display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* Modal Close Button Positioning Fix */
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
+.modal-header h3 { font-size: 18px; }
+.close-modal { cursor: pointer; color: #888; font-size: 28px; line-height: 1; padding: 5px; }
+
+.search-bar { width: 100%; padding: 14px; background: #121212; border: 1px solid #333; color: white; border-radius: 12px; margin-bottom: 12px; }
+.btn-create-custom { width: 100%; padding: 12px; background: #2A2A30; color: var(--primary-color); border: 1px dashed var(--primary-color); border-radius: 10px; font-weight: 600; margin-bottom: 15px; flex-shrink: 0; }
+
+.filter-chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; flex-shrink: 0; scrollbar-width: none; }
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip { padding: 8px 16px; background: #333; border-radius: 20px; font-size: 13px; flex-shrink: 0; cursor: pointer; color: #888; }
+.chip.active { background: var(--primary-color); color: white; }
+
+.library-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.lib-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #2a2a2a; }
+.lib-info { display: flex; flex-direction: column; flex: 1; cursor: pointer; }
+.lib-name { font-weight: 500; font-size: 15px; text-transform: capitalize; }
+.lib-meta { font-size: 12px; color: #666; margin-top: 4px; }
+.lib-actions { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
+.lib-star { font-size: 20px; color: #444; }
+.lib-star.starred { color: #FFD700; }
+.btn-add-small { width: 32px; height: 32px; background: #333; color: var(--primary-color); border-radius: 50%; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* GIF Modal Centering Fix */
+/* --- GIF MODAL SPECIFIC FIXES --- */
+
+/* 1. Force the GIF modal to center on mobile and ignore 'flex-end' */
+@media (max-width: 768px) {
+    #gif-modal {
+        display: none; /* Default hidden */
+        align-items: center !important; 
+        justify-content: center !important;
+    }
+    #gif-modal.active {
+        display: flex !important;
+    }
+}
+
+/* 2. Remove wasted space by overriding the general 80vh height */
+#gif-modal .modal-content {
+    height: auto !important; 
+    width: auto !important;
+    max-width: 90vw;
+    padding: 20px;
+    border-radius: 24px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 3. Spacing between Title, Muscle Chip, and GIF */
+#gif-modal .modal-header {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+#gif-target {
+    margin-bottom: 20px !important;
+    text-transform: capitalize;
+}
+
+/* 4. The GIF Wrapper & Resolution Lock */
+.gif-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    /* Wrapper fits the 180px GIF + padding */
+    width: 200px; 
+    height: 200px;
+    flex-shrink: 0;
+}
+
+.gif-wrapper img {
+    /* STRICT 180x180: No upscaling, no blur */
+    width: 180px !important;
+    height: 180px !important;
+    display: block;
+    object-fit: contain;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background-color: var(--card-bg); border-top: 1px solid #333;
+    display: flex; justify-content: space-around;
+    padding-top: 12px; padding-bottom: calc(12px + var(--safe-bottom));
+    z-index: 1000;
+}
+.nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #666; font-size: 10px; flex: 1; }
+.nav-item.active { color: var(--primary-color); }
+.nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+@media (max-width: 768px) {
+    .modal { align-items: flex-end; }
+    .modal-content { max-width: 100%; max-height: 92%; border-radius: 24px 24px 0 0; margin: 0; }
+}
+@media (max-width: 350px) {
+    .gif-wrapper {
+        width: 100%;
+        height: auto;
+    }
+    .gif-wrapper img {
+        width: 100%;
+        height: auto;
+    }
+}
