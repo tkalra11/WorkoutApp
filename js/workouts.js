@@ -44,13 +44,16 @@ async function syncToCloud() {
     if (auth.currentUser) {
         try {
             const userRef = doc(db, "users", auth.currentUser.uid);
+            // We use server-compatible ISO strings for the cloud timestamp
+            const now = new Date().toISOString();
+            
             await updateDoc(userRef, {
                 workout_templates: templates,
                 custom_exercises: customExercises,
                 exercise_favorites: favorites,
-                lastSynced: new Date().toISOString()
+                lastSynced: now
             });
-            console.log("Cloud sync successful");
+            console.log("Cloud sync successful at:", now);
         } catch (error) {
             console.error("Cloud sync failed (saved locally):", error);
         }
@@ -58,54 +61,85 @@ async function syncToCloud() {
 }
 
 async function saveTemplates() {
-    localStorage.setItem('workout_templates', JSON.stringify(templates));
+    const syncData = {
+        data: templates,
+        lastModified: Date.now()
+    };
+    localStorage.setItem('workout_templates', JSON.stringify(syncData));
     await syncToCloud();
 }
 
 async function saveCustom() { 
-    localStorage.setItem('custom_exercises', JSON.stringify(customExercises)); 
+    const syncData = {
+        data: customExercises,
+        lastModified: Date.now()
+    };
+    localStorage.setItem('custom_exercises', JSON.stringify(syncData)); 
     await syncToCloud();
 }
 
 async function saveFavorites() { 
-    localStorage.setItem('exercise_favorites', JSON.stringify(favorites)); 
+    const syncData = {
+        data: favorites,
+        lastModified: Date.now()
+    };
+    localStorage.setItem('exercise_favorites', JSON.stringify(syncData)); 
     await syncToCloud();
 }
 
 function loadDataLocal() {
-    const t = localStorage.getItem('workout_templates');
-    const c = localStorage.getItem('custom_exercises');
-    const f = localStorage.getItem('exercise_favorites');
+    const tRaw = localStorage.getItem('workout_templates');
+    const cRaw = localStorage.getItem('custom_exercises');
+    const fRaw = localStorage.getItem('exercise_favorites');
 
-    if (t) templates = JSON.parse(t);
-    else {
-        // Create default if completely new
+    // Parse the wrapped objects and extract the .data
+    if (tRaw) {
+        const tParsed = JSON.parse(tRaw);
+        templates = tParsed.data || tParsed; // Fallback for old simple arrays
+    } else {
         templates = [{ id: "p1", name: "Default Plan", active: true, 
                        schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) }];
     }
-    customExercises = c ? JSON.parse(c) : [];
-    favorites = f ? JSON.parse(f) : [];
+
+    if (cRaw) {
+        const cParsed = JSON.parse(cRaw);
+        customExercises = cParsed.data || cParsed;
+    }
+
+    if (fRaw) {
+        const fParsed = JSON.parse(fRaw);
+        favorites = fParsed.data || fParsed;
+    }
 }
 
-// Load from Firebase (Cloud Sync)
 async function loadDataCloud(uid) {
     try {
         const userDoc = await getDoc(doc(db, "users", uid));
-        if (userDoc.exists()) {
-            const cloud = userDoc.data();
-            
-            // Overwrite global variables with cloud data
-            templates = cloud.workout_templates || templates;
-            customExercises = cloud.custom_exercises || customExercises;
-            favorites = cloud.exercise_favorites || favorites;
 
-            // Sync back to local storage so the cache stays fresh
-            localStorage.setItem('workout_templates', JSON.stringify(templates));
-            localStorage.setItem('custom_exercises', JSON.stringify(customExercises));
-            localStorage.setItem('exercise_favorites', JSON.stringify(favorites));
+        const tLocal = JSON.parse(localStorage.getItem('workout_templates') || '{}');
+        const localTime = tLocal.lastModified || 0;
+
+        if (userDoc.exists()) {
+            const cloudData = userDoc.data();
+            const cloudTime = new Date(cloudData.lastSynced).getTime() || 0;
+
+            // --- COMPARISON LOGIC ---
+            if (cloudTime >= localTime) {
+                console.log("Cloud is newer. Updating local.");
+                templates = cloudData.workout_templates || templates;
+                customExercises = cloudData.custom_exercises || customExercises;
+                favorites = cloudData.exercise_favorites || favorites;
+
+                localStorage.setItem('workout_templates', JSON.stringify({ data: templates, lastModified: cloudTime }));
+                localStorage.setItem('custom_exercises', JSON.stringify({ data: customExercises, lastModified: cloudTime }));
+                localStorage.setItem('exercise_favorites', JSON.stringify({ data: favorites, lastModified: cloudTime }));
+            } else {
+                console.log("Local is newer. Pushing to cloud.");
+                await syncToCloud();
+            }
         }
     } catch (error) {
-        console.error("Cloud load failed:", error);
+        console.error("Cloud load/comparison failed:", error);
     }
 }
 
