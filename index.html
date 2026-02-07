@@ -14,9 +14,25 @@
 </head>
 
  <body>
-    <div class="container">
-        <p>Welcome back! Here is your daily overview.</p>
-        </div>
-    
-    </body>
+    <div class="container dashboard-container">
+        <section id="today-summary" class="dashboard-card">
+            <h2>Today's Goal</h2>
+            <div id="workout-preview">Loading today's plan...</div>
+        </section>
+
+        <section id="weekly-overview" class="dashboard-card">
+            <h3>This Week</h3>
+            <div class="week-bubbles" id="week-bubbles">
+                </div>
+        </section>
+
+        <section id="quick-stats" class="dashboard-card">
+            <h3>Quick Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-item"><span>0</span><p>Workouts</p></div>
+                <div class="stat-item"><span>0</span><p>Calories</p></div>
+            </div>
+        </section>
+    </div>
+</body>
 </html>
