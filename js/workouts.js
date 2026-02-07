@@ -1,5 +1,6 @@
 import { auth, db } from "./firebase-config.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 let exercisesDB = {};
 let customExercises = [];
@@ -380,7 +381,7 @@ function createCustomExercise() {
 }
 
 // Logic to process the form data
-window.submitCustomExercise = function() {
+function submitCustomExercise() {
     const nameInput = document.getElementById('custom-ex-name');
     const categorySelect = document.getElementById('custom-ex-category');
     
@@ -499,3 +500,8 @@ window.openLibrary = openLibrary;
 window.closeLibrary = closeLibrary;
 window.filterBodyPart = filterBodyPart;
 window.createNewPlan = createNewPlan;
+window.renamePlan = renamePlan;
+window.deletePlan = deletePlan;
+window.showExerciseDetails = showExerciseDetails;
+window.closeGifModal = closeGifModal;
+window.submitCustomExercise = submitCustomExercise;
