@@ -92,51 +92,73 @@ function loadDataLocal() {
     const cRaw = localStorage.getItem('custom_exercises');
     const fRaw = localStorage.getItem('exercise_favorites');
 
-    // Parse the wrapped objects and extract the .data
-    if (tRaw) {
-        const tParsed = JSON.parse(tRaw);
-        templates = tParsed.data || tParsed; // Fallback for old simple arrays
+    // Helper to extract data from the {data, lastModified} structure
+    const extract = (raw) => {
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed.hasOwnProperty('data') ? parsed.data : parsed;
+    };
+
+    const tData = extract(tRaw);
+    if (tData && tData.length > 0) {
+        templates = tData;
     } else {
-        templates = [{ id: "p1", name: "Default Plan", active: true, 
-                       schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) }];
+        // Fallback: Create the Default Plan if nothing exists locally
+        templates = [{ 
+            id: "p1", 
+            name: "Default Plan", 
+            active: true, 
+            schedule: Array(7).fill(null).map((_, i) => ({ 
+                isRest: false, 
+                exercises: [], 
+                dayName: "" 
+            })) 
+        }];
     }
 
-    if (cRaw) {
-        const cParsed = JSON.parse(cRaw);
-        customExercises = cParsed.data || cParsed;
-    }
-
-    if (fRaw) {
-        const fParsed = JSON.parse(fRaw);
-        favorites = fParsed.data || fParsed;
-    }
+    customExercises = extract(cRaw) || [];
+    favorites = extract(fRaw) || [];
 }
 
 async function loadDataCloud(uid) {
     try {
         const userDoc = await getDoc(doc(db, "users", uid));
-
-        const tLocal = JSON.parse(localStorage.getItem('workout_templates') || '{}');
-        const localTime = tLocal.lastModified || 0;
+        
+        // Use the same keys as loadDataLocal
+        const tLocalRaw = localStorage.getItem('workout_templates');
+        const tLocalParsed = tLocalRaw ? JSON.parse(tLocalRaw) : {};
+        const localTime = tLocalParsed.lastModified || 0;
 
         if (userDoc.exists()) {
             const cloudData = userDoc.data();
-            const cloudTime = new Date(cloudData.lastSynced).getTime() || 0;
+            const cloudTime = cloudData.lastSynced ? new Date(cloudData.lastSynced).getTime() : 0;
 
             // --- COMPARISON LOGIC ---
             if (cloudTime >= localTime) {
-                console.log("Cloud is newer. Updating local.");
-                templates = cloudData.workout_templates || templates;
-                customExercises = cloudData.custom_exercises || customExercises;
-                favorites = cloudData.exercise_favorites || favorites;
-
-                localStorage.setItem('workout_templates', JSON.stringify({ data: templates, lastModified: cloudTime }));
-                localStorage.setItem('custom_exercises', JSON.stringify({ data: customExercises, lastModified: cloudTime }));
-                localStorage.setItem('exercise_favorites', JSON.stringify({ data: favorites, lastModified: cloudTime }));
+                console.log("Cloud is newer or equal. Checking content...");
+                
+                // SAFETY CHECK: Only overwrite if cloud actually has data
+                if (cloudData.workout_templates && cloudData.workout_templates.length > 0) {
+                    templates = cloudData.workout_templates;
+                    customExercises = cloudData.custom_exercises || [];
+                    favorites = cloudData.exercise_favorites || [];
+                    
+                    // Update local cache with cloud data and cloud timestamp
+                    localStorage.setItem('workout_templates', syncObj(templates, cloudTime));
+                    localStorage.setItem('custom_exercises', syncObj(customExercises, cloudTime));
+                    localStorage.setItem('exercise_favorites', syncObj(favorites, cloudTime));
+                } else {
+                    console.log("Cloud is empty. Pushing local default up.");
+                    await syncToCloud();
+                }
             } else {
                 console.log("Local is newer. Pushing to cloud.");
                 await syncToCloud();
             }
+        } else {
+            // New User: Document doesn't exist yet, push the default plan
+            console.log("New user detected. Initializing cloud document.");
+            await syncToCloud();
         }
     } catch (error) {
         console.error("Cloud load/comparison failed:", error);
