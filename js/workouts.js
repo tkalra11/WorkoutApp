@@ -40,6 +40,11 @@ function applyLayoutFixes() {
 }
 
 // --- DATA MANAGEMENT ---
+
+const syncObj = (data, timestamp) => JSON.stringify({ 
+    data: data, 
+    lastModified: timestamp 
+});
 async function syncToCloud() {
     if (auth.currentUser) {
         try {
