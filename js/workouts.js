@@ -124,44 +124,48 @@ async function loadDataCloud(uid) {
     try {
         const userDoc = await getDoc(doc(db, "users", uid));
         
-        // Use the same keys as loadDataLocal
+        // Get local metadata
         const tLocalRaw = localStorage.getItem('workout_templates');
         const tLocalParsed = tLocalRaw ? JSON.parse(tLocalRaw) : {};
         const localTime = tLocalParsed.lastModified || 0;
 
         if (userDoc.exists()) {
             const cloudData = userDoc.data();
+            // Convert ISO string to timestamp for numerical comparison
             const cloudTime = cloudData.lastSynced ? new Date(cloudData.lastSynced).getTime() : 0;
 
-            // --- COMPARISON LOGIC ---
             if (cloudTime >= localTime) {
-                console.log("Cloud is newer or equal. Checking content...");
+                console.log("Cloud is newer or equal. Syncing down...");
                 
-                // SAFETY CHECK: Only overwrite if cloud actually has data
-                if (cloudData.workout_templates && cloudData.workout_templates.length > 0) {
+                // Content Check: Does the cloud actually have templates?
+                const hasCloudTemplates = cloudData.workout_templates && cloudData.workout_templates.length > 0;
+
+                if (hasCloudTemplates) {
+                    // Update global state
                     templates = cloudData.workout_templates;
                     customExercises = cloudData.custom_exercises || [];
                     favorites = cloudData.exercise_favorites || [];
                     
-                    // Update local cache with cloud data and cloud timestamp
+                    // Update all local storage keys with the cloud's timestamp
                     localStorage.setItem('workout_templates', syncObj(templates, cloudTime));
                     localStorage.setItem('custom_exercises', syncObj(customExercises, cloudTime));
                     localStorage.setItem('exercise_favorites', syncObj(favorites, cloudTime));
                 } else {
-                    console.log("Cloud is empty. Pushing local default up.");
+                    // Cloud exists but is empty (e.g., fresh account). Push our local default up.
+                    console.log("Cloud has no templates. Uploading local defaults...");
                     await syncToCloud();
                 }
             } else {
-                console.log("Local is newer. Pushing to cloud.");
+                console.log("Local changes detected. Uploading to cloud...");
                 await syncToCloud();
             }
         } else {
-            // New User: Document doesn't exist yet, push the default plan
-            console.log("New user detected. Initializing cloud document.");
+            // Document doesn't exist at all in Firestore
+            console.log("First time login. Initializing cloud storage...");
             await syncToCloud();
         }
     } catch (error) {
-        console.error("Cloud load/comparison failed:", error);
+        console.error("Critical Cloud Sync Error:", error);
     }
 }
 
