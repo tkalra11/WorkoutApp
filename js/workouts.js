@@ -45,26 +45,41 @@ const syncObj = (data, timestamp) => JSON.stringify({
     data: data, 
     lastModified: timestamp 
 });
+
+// Powerful helper to ensure we always get an Array, even from a Map
+const ensureArray = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val; 
+    if (val.data && Array.isArray(val.data)) return val.data; // Handles the {data: []} Map
+    return [];
+};
+
 async function syncToCloud() {
     if (auth.currentUser) {
         try {
             const userRef = doc(db, "users", auth.currentUser.uid);
-            // We use server-compatible ISO strings for the cloud timestamp
-            const now = new Date().toISOString();
+            const nowTime = Date.now();
+            const nowISO = new Date(nowTime).toISOString();
             
+            // Save as flat arrays in Firestore (Clean structure)
             await updateDoc(userRef, {
                 workout_templates: templates,
                 custom_exercises: customExercises,
                 exercise_favorites: favorites,
-                lastSynced: now
+                lastSynced: nowISO
             });
-            console.log("Cloud sync successful at:", now);
+
+            // Keep the metadata format for LocalStorage
+            localStorage.setItem('workout_templates', syncObj(templates, nowTime));
+            localStorage.setItem('custom_exercises', syncObj(customExercises, nowTime));
+            localStorage.setItem('exercise_favorites', syncObj(favorites, nowTime));
+
+            console.log("Cloud structure cleaned and synced.");
         } catch (error) {
-            console.error("Cloud sync failed (saved locally):", error);
+            console.error("Cloud sync failed:", error);
         }
     }
 }
-
 async function saveTemplates() {
     const syncData = {
         data: templates,
@@ -128,49 +143,40 @@ function loadDataLocal() {
 async function loadDataCloud(uid) {
     try {
         const userDoc = await getDoc(doc(db, "users", uid));
-        
-        // Get local metadata
         const tLocalRaw = localStorage.getItem('workout_templates');
         const tLocalParsed = tLocalRaw ? JSON.parse(tLocalRaw) : {};
         const localTime = tLocalParsed.lastModified || 0;
 
         if (userDoc.exists()) {
             const cloudData = userDoc.data();
-            // Convert ISO string to timestamp for numerical comparison
             const cloudTime = cloudData.lastSynced ? new Date(cloudData.lastSynced).getTime() : 0;
 
             if (cloudTime >= localTime) {
-                console.log("Cloud is newer or equal. Syncing down...");
+                console.log("Cloud is newer. Syncing down...");
                 
-                // Content Check: Does the cloud actually have templates?
-                const hasCloudTemplates = cloudData.workout_templates && cloudData.workout_templates.length > 0;
+                // Use the ensureArray helper to fix the Map vs Array issue
+                templates = ensureArray(cloudData.workout_templates);
+                customExercises = ensureArray(cloudData.custom_exercises);
+                favorites = ensureArray(cloudData.exercise_favorites);
 
-                if (hasCloudTemplates) {
-                    // Update global state
-                    templates = cloudData.workout_templates;
-                    customExercises = cloudData.custom_exercises || [];
-                    favorites = cloudData.exercise_favorites || [];
-                    
-                    // Update all local storage keys with the cloud's timestamp
-                    localStorage.setItem('workout_templates', syncObj(templates, cloudTime));
-                    localStorage.setItem('custom_exercises', syncObj(customExercises, cloudTime));
-                    localStorage.setItem('exercise_favorites', syncObj(favorites, cloudTime));
-                } else {
-                    // Cloud exists but is empty (e.g., fresh account). Push our local default up.
-                    console.log("Cloud has no templates. Uploading local defaults...");
-                    await syncToCloud();
+                if (templates.length === 0) {
+                    templates = [{ id: "p1", name: "Default Plan", active: true, 
+                                   schedule: Array(7).fill(null).map(()=>({ isRest: false, exercises: [], dayName: "" })) }];
                 }
+
+                localStorage.setItem('workout_templates', syncObj(templates, cloudTime));
+                localStorage.setItem('custom_exercises', syncObj(customExercises, cloudTime));
+                localStorage.setItem('exercise_favorites', syncObj(favorites, cloudTime));
             } else {
-                console.log("Local changes detected. Uploading to cloud...");
+                console.log("Local is newer. Pushing to cloud.");
                 await syncToCloud();
             }
         } else {
-            // Document doesn't exist at all in Firestore
-            console.log("First time login. Initializing cloud storage...");
+            console.log("New user detected. Initializing...");
             await syncToCloud();
         }
     } catch (error) {
-        console.error("Critical Cloud Sync Error:", error);
+        console.error("Cloud load/comparison failed:", error);
     }
 }
 
@@ -502,8 +508,14 @@ function filterBodyPart(cat) {
 }
 
 function renderLibraryList() {
-    const q = document.getElementById('search-bar').value.toLowerCase();
-    const c = document.getElementById('library-list'); c.innerHTML='';
+    if (!Array.isArray(favorites)) favorites = [];
+    if (!Array.isArray(customExercises)) customExercises = [];
+
+    const searchBar = document.getElementById('search-bar');
+    const q = searchBar ? searchBar.value.toLowerCase() : "";
+    const c = document.getElementById('library-list'); 
+    if (!c) return;
+    c.innerHTML = '';
     let list = [];
     const map = { 'chest':['chest'], 'back':['back'], 'shoulders':['shoulders','neck'], 'arms':['lower arms','upper arms'], 'legs':['lower legs','upper legs'], 'abs':['waist'], 'cardio':['cardio'] };
 
