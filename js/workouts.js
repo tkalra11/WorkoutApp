@@ -421,39 +421,40 @@ function createCustomExercise() {
     
     // 2. Create the unified form HTML
     let formHtml = `
-<div id="custom-ex-modal" class="modal-overlay">
-            <div class="modal-content">
-                <h3>Create Custom Exercise</h3>
-                
-                <label class="input-label">Exercise Name</label>
-                <input type="text" id="custom-ex-name" placeholder="e.g. Diamond Pushups" class="modal-input">
+    <div id="custom-ex-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Create Custom Exercise</h3>
+            
+            <label class="input-label">Exercise Name</label>
+            <input type="text" id="custom-ex-name" placeholder="e.g. Diamond Pushups" class="modal-input">
 
-                <label class="input-label">Muscle Group</label>
-                <select id="custom-ex-category" class="modal-input">
-                    ${categories.map(cat => `<option value="${cat}">${cat.charAt(0).toUpperCase() + cat.slice(1)}</option>`).join('')}
-                </select>
+            <label class="input-label">Muscle Group</label>
+            <select id="custom-ex-category" class="modal-input">
+                ${categories.map(cat => `<option value="${cat}">${cat.charAt(0).toUpperCase() + cat.slice(1)}</option>`).join('')}
+            </select>
 
-                <label class="input-label">Upload GIF (Optional)</label>
-                <input type="file" id="custom-ex-gif" accept="image/gif" class="modal-input">
+            <label class="input-label">Upload GIF (Optional)</label>
+            <input type="file" id="custom-ex-gif" accept="image/gif" class="modal-input">
 
-                <div class="checkbox-container">
+            <div class="checkbox-container">
+                <label for="contribute-global">
                     <input type="checkbox" id="contribute-global">
-                    <label for="contribute-global">Add to global database for others?</label>
-                    <p class="helper-text">(Pending admin approval)</p>
-                </div>
+                    <span>Add to global database for others?</span>
+                </label>
+                <p class="helper-text">(Pending admin approval)</p>
+            </div>
 
-                <div class="modal-actions">
-                    <button onclick="document.getElementById('custom-ex-modal').remove()" class="btn-cancel">Cancel</button>
-                    <button onclick="submitCustomExercise()" class="btn-submit">Add Exercise</button>
-                </div>
+            <div class="modal-actions">
+                <button onclick="document.getElementById('custom-ex-modal').remove()" class="btn-cancel">Cancel</button>
+                <button onclick="submitCustomExercise()" class="btn-submit">Add Exercise</button>
             </div>
         </div>
-    `;
-
+    </div>`;
     document.body.insertAdjacentHTML('beforeend', formHtml);
-    
-    // Auto-focus the input for better UX
-    setTimeout(() => document.getElementById('custom-ex-name').focus(), 100);
+    setTimeout(() => {
+        const input = document.getElementById('custom-ex-name');
+        if(input) input.focus();
+    }, 100);
 }
 
 // Logic to process the form data
