@@ -54,8 +54,18 @@ async function migrateLocalDataToCloud(uid) {
 // --- 2. SIGN OUT ---
 export async function handleSignOut() {
     if (confirm("Sign out? Local changes won't sync until you log back in.")) {
-        await signOut(auth);
-        window.location.reload();
+        try {
+        await auth.signOut();
+        // Clear all workout data from the browser
+        localStorage.removeItem('workout_templates');
+        localStorage.removeItem('custom_exercises');
+        localStorage.removeItem('exercise_favorites');
+        localStorage.removeItem('last_user_id');
+        
+        window.location.reload(); // Refresh to reset global variables
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
     }
 }
 

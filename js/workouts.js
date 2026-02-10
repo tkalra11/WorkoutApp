@@ -73,7 +73,7 @@ async function syncToCloud() {
             localStorage.setItem('workout_templates', syncObj(templates, nowTime));
             localStorage.setItem('custom_exercises', syncObj(customExercises, nowTime));
             localStorage.setItem('exercise_favorites', syncObj(favorites, nowTime));
-
+            localStorage.setItem('last_user_id', auth.currentUser.uid);
             console.log("Cloud structure cleaned and synced.");
         } catch (error) {
             console.error("Cloud sync failed:", error);
@@ -142,6 +142,12 @@ function loadDataLocal() {
 
 async function loadDataCloud(uid) {
     try {
+        const lastUser = localStorage.getItem('last_user_id');
+        if (lastUser && lastUser !== uid) {
+            console.log("New user detected. Clearing previous user's local cache.");
+            localStorage.clear(); // Wipe everything to prevent data leakage
+            loadDataLocal();      // Reset global variables to defaults
+        }
         const userDoc = await getDoc(doc(db, "users", uid));
         const tLocalRaw = localStorage.getItem('workout_templates');
         const tLocalParsed = tLocalRaw ? JSON.parse(tLocalRaw) : {};
