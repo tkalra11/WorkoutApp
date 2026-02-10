@@ -594,4 +594,5 @@ window.renamePlan = renamePlan;
 window.deletePlan = deletePlan;
 window.showExerciseDetails = showExerciseDetails;
 window.closeGifModal = closeGifModal;
+window.createCustomExercise = createCustomExercise;
 window.submitCustomExercise = submitCustomExercise;
